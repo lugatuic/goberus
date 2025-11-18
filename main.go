@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/operatr/goberus/config"
-	"github.com/operatr/goberus/ldaps"
+	"github.com/lugatuic/goberus/config"
+	"github.com/lugatuic/goberus/ldaps"
 )
 
 func main() {
