@@ -1,4 +1,4 @@
-module github.com/operatr/goberus
+module github.com/lugatuic/goberus
 
 go 1.21
 
