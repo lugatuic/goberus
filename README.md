@@ -46,7 +46,7 @@ A multi-stage Dockerfile is provided to build a small runtime image.
 
 Build:
 ```bash
-docker build -t operatr/goberus:latest .
+docker build -t lugatuic/goberus:latest .
 ```
 
 Run (example):
@@ -58,7 +58,7 @@ docker run --rm -p 8080:8080 \
   -e LDAP_BIND_DN="CN=svc-goberus,OU=svc,DC=example,DC=local" \
   -e LDAP_BIND_PASSWORD="supersecret" \
   -e LDAP_SKIP_VERIFY="false" \
-  operatr/goberus:latest
+  lugatuic/goberus:latest
 ```
 
 If you need to provide a CA certificate file to verify the LDAPS server certificate, mount it into the container and set `LDAP_CA_CERT` to the path inside the container:
@@ -66,7 +66,7 @@ If you need to provide a CA certificate file to verify the LDAPS server certific
 docker run --rm -p 8080:8080 \
   -v /local/path/ca.pem:/etc/ssl/certs/goberus-ca.pem:ro \
   -e LDAP_CA_CERT="/etc/ssl/certs/goberus-ca.pem" \
-  ... operatr/goberus:latest
+  ... lugatuic/goberus:latest
 ```
 
 CI tip — bake CA into the image from a secret (GitHub Actions example)
@@ -78,7 +78,7 @@ Example GitHub Actions step (assumes secret name GOBERUS_CA_PEM):
 - name: Build image (write CA from secret)
   run: |
     echo "$GOBERUS_CA_PEM" > ad_chain.pem
-    docker build --build-arg TARGETARCH=amd64 --build-arg TARGETOS=linux -t operatr/goberus:latest .
+    docker build --build-arg TARGETARCH=amd64 --build-arg TARGETOS=linux -t lugatuic/goberus:latest .
   env:
     GOBERUS_CA_PEM: ${{ secrets.GOBERUS_CA_PEM }}
 ```
