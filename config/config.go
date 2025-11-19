@@ -14,6 +14,7 @@ type Config struct {
 	BindPassword string
 	SkipVerify   bool
 	CACertPath   string // optional path to CA PEM to verify LDAPS certs
+	UserOU       string // optional OU to place new users under, e.g. "OU=Users"
 }
 
 func LoadFromEnv() (*Config, error) {
@@ -24,6 +25,7 @@ func LoadFromEnv() (*Config, error) {
 		BindDN:       os.Getenv("LDAP_BIND_DN"),
 		BindPassword: os.Getenv("LDAP_BIND_PASSWORD"),
 		CACertPath:   os.Getenv("LDAP_CA_CERT"),
+		UserOU:       os.Getenv("LDAP_USER_OU"),
 	}
 	if getenv("LDAP_SKIP_VERIFY", "false") == "true" {
 		cfg.SkipVerify = true

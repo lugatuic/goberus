@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
-	"github.com/operatr/goberus/config"
+	"github.com/lugatuic/goberus/config"
+	"go.uber.org/zap"
 )
 
 // MemberInfo is a minimal struct representing attributes returned by get_member_info.
@@ -25,16 +26,31 @@ type MemberInfo struct {
 	BadPasswordTime string   `json:"badPasswordTime,omitempty"`
 }
 
+// UserInfo represents the minimal user registration payload used by AddUser.
+type UserInfo struct {
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	GivenName   string `json:"givenName,omitempty"`
+	Surname     string `json:"surname,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	Mail        string `json:"mail,omitempty"`
+	Phone       string `json:"phone,omitempty"`
+	Major       string `json:"major,omitempty"`
+	College     string `json:"college,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
 // Client holds configuration and TLS config for dialing LDAPS.
 // For simplicity each operation dials/binds and closes the connection.
 type Client struct {
 	cfg       *config.Config
 	tlsConfig *tls.Config
+	logger    *zap.Logger
 }
 
 // NewClient prepares a Client and TLS settings (but does not connect yet).
-func NewClient(cfg *config.Config) (*Client, error) {
-	var c *Client = &Client{cfg: cfg}
+func NewClient(cfg *config.Config, logger *zap.Logger) (*Client, error) {
+	var c *Client = &Client{cfg: cfg, logger: logger}
 
 	// Build tls.Config
 	var tlsCfg *tls.Config = &tls.Config{
@@ -90,6 +106,9 @@ func (c *Client) dialAndBind(ctx context.Context) (*ldap.Conn, error) {
 		var bindErr error
 		bindErr = conn.Bind(c.cfg.BindDN, c.cfg.BindPassword)
 		if bindErr != nil {
+			if c.logger != nil {
+				c.logger.Error("service bind failed", zap.Error(bindErr), zap.String("bind_dn", c.cfg.BindDN))
+			}
 			conn.Close()
 			return nil, fmt.Errorf("service bind failed: %w", bindErr)
 		}
@@ -143,6 +162,9 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	var sr *ldap.SearchResult
 	sr, err = conn.Search(searchReq)
 	if err != nil {
+		if c.logger != nil {
+			c.logger.Error("ldap search failed", zap.Error(err), zap.String("filter", filter), zap.String("username", username))
+		}
 		return nil, fmt.Errorf("ldap search failed: %w", err)
 	}
 
@@ -167,7 +189,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	if len(members) > 0 {
 		var normalized []string = make([]string, 0, len(members))
 		var i int
-	for i = 0; i < len(members); i++ {
+		for i = 0; i < len(members); i++ {
 			var m string = members[i]
 			normalized = append(normalized, strings.TrimSpace(m))
 		}
@@ -175,4 +197,83 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	}
 
 	return info, nil
+}
+
+// AddUser creates a new LDAP entry for the provided user info.
+func (c *Client) AddUser(ctx context.Context, u *UserInfo) error {
+	// small timeout for add
+	var ctxWithTimeout context.Context
+	var cancel context.CancelFunc
+	ctxWithTimeout, cancel = context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
+
+	conn, err := c.dialAndBind(ctxWithTimeout)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// Build DN: if UserOU provided in config, include it
+	var dn string
+	if c.cfg.UserOU != "" {
+		dn = fmt.Sprintf("CN=%s,%s,%s", ldap.EscapeFilter(u.Username), c.cfg.UserOU, c.cfg.BaseDN)
+	} else {
+		dn = fmt.Sprintf("CN=%s,%s", ldap.EscapeFilter(u.Username), c.cfg.BaseDN)
+	}
+
+	req := ldap.NewAddRequest(dn, nil)
+	req.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "user"})
+
+	// Basic attributes
+	req.Attribute("cn", []string{u.Username})
+	if u.Surname != "" {
+		req.Attribute("sn", []string{u.Surname})
+	}
+	if u.DisplayName != "" {
+		req.Attribute("displayName", []string{u.DisplayName})
+	}
+	req.Attribute("sAMAccountName", []string{u.Username})
+
+	if u.Mail != "" {
+		req.Attribute("mail", []string{u.Mail})
+	}
+	if u.Phone != "" {
+		req.Attribute("telephoneNumber", []string{u.Phone})
+	}
+	if u.Description != "" {
+		req.Attribute("description", []string{u.Description})
+	}
+
+	// Try to build a sensible userPrincipalName from BaseDN DC components
+	var upn string
+	parts := strings.Split(c.cfg.BaseDN, ",")
+	var dcs []string
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if strings.HasPrefix(strings.ToLower(p), "dc=") {
+			dcs = append(dcs, strings.TrimSpace(p[3:]))
+		}
+	}
+	if len(dcs) > 0 {
+		upn = fmt.Sprintf("%s@%s", u.Username, strings.Join(dcs, "."))
+		req.Attribute("userPrincipalName", []string{upn})
+	}
+
+	// Password: AD may require specific attribute handling; we set userPassword for now.
+	if u.Password != "" {
+		req.Attribute("userPassword", []string{u.Password})
+	}
+
+	if err := conn.Add(req); err != nil {
+		if c.logger != nil {
+			c.logger.Error("ldap add failed", zap.Error(err), zap.String("dn", dn), zap.String("username", u.Username))
+		}
+		return fmt.Errorf("ldap add failed: %w", err)
+	}
+
+	if c.logger != nil {
+		c.logger.Info("user added", zap.String("dn", dn), zap.String("username", u.Username))
+	}
+
+	return nil
 }

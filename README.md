@@ -112,6 +112,3 @@ Next steps (after you verify this works)
 - Implement connection pooling/reconnect semantics
 - Implement AD-safe password set/change (unicodePwd handling over LDAPS)
 - Add unit tests + integration tests (Docker-compose with Samba AD)
-
-License
-- Add your preferred license; none is included by default.
