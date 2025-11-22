@@ -1,0 +1,46 @@
+name: golangci-lint
+
+# Run on push, pull requests and weekly schedule
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  schedule:
+    - cron: '0 6 * * 1'  # weekly run on Mondays at 06:00 UTC
+
+jobs:
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          # Project Go version; change if you prefer a different version
+          go-version: '1.21'
+
+      - name: Cache golangci-lint binary and modules
+        uses: actions/cache@v4
+        with:
+          # Cache the golangci-lint binary and Go build cache
+          path: |
+            ~/.cache/golangci-lint
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('.golangci.yml', 'go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-golangci-lint-
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          # Choose a golangci-lint version; change if you need a specific one
+          version: v1.59.0
+          # Additional args: adjust timeout and directories as needed
+          args: --timeout=5m
