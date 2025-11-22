@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
-	"github.com/operatr/goberus/config"
+	"github.com/lugatuic/goberus/config"
 )
 
 // MemberInfo is a minimal struct representing attributes returned by get_member_info.
@@ -167,7 +167,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	if len(members) > 0 {
 		var normalized []string = make([]string, 0, len(members))
 		var i int
-	for i = 0; i < len(members); i++ {
+		for i = 0; i < len(members); i++ {
 			var m string = members[i]
 			normalized = append(normalized, strings.TrimSpace(m))
 		}
