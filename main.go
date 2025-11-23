@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/lugatuic/goberus/config"
 	"github.com/lugatuic/goberus/ldaps"
 	"github.com/lugatuic/goberus/middleware"
-	"go.uber.org/zap"
 )
 
 // appHandler is an application handler that returns an error. Returned
@@ -44,7 +47,11 @@ func handleGetMember(client *ldaps.Client, w http.ResponseWriter, r *http.Reques
 
 // handleCreateMember handles the POST /v1/member logic. Same error convention as above.
 func handleCreateMember(client *ldaps.Client, w http.ResponseWriter, r *http.Request) error {
-	defer r.Body.Close()
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close request body: %v\n", err)
+		}
+	}()
 	var u ldaps.UserInfo
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		// client error
@@ -77,7 +84,11 @@ func main() {
 	if lerr != nil {
 		panic("failed to initialize logger: " + lerr.Error())
 	}
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "logger sync failed: %v\n", err)
+		}
+	}()
 
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
