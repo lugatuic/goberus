@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/lugatuic/goberus/config"
+	"github.com/lugatuic/goberus/handlers"
 	"github.com/lugatuic/goberus/ldaps"
 	"github.com/lugatuic/goberus/middleware"
 )
@@ -58,8 +59,8 @@ func handleCreateMember(client *ldaps.Client, w http.ResponseWriter, r *http.Req
 		http.Error(w, "invalid json: "+err.Error(), http.StatusBadRequest)
 		return nil
 	}
-	if u.Username == "" {
-		http.Error(w, "missing username", http.StatusBadRequest)
+	if err := handlers.SanitizeUser(&u); err != nil {
+		http.Error(w, "invalid input: "+err.Error(), http.StatusBadRequest)
 		return nil
 	}
 
