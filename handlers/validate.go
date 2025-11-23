@@ -15,7 +15,6 @@ func SanitizeUser(u *ldaps.UserInfo) error {
 	}
 	// Trim whitespace
 	u.Username = strings.TrimSpace(u.Username)
-	u.Password = strings.TrimSpace(u.Password)
 	u.GivenName = strings.TrimSpace(u.GivenName)
 	u.Surname = strings.TrimSpace(u.Surname)
 	u.DisplayName = strings.TrimSpace(u.DisplayName)
