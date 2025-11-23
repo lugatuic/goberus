@@ -1,83 +1,22 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/lugatuic/goberus/config"
-	"github.com/lugatuic/goberus/handlers"
 	"github.com/lugatuic/goberus/ldaps"
 	"github.com/lugatuic/goberus/middleware"
+	"github.com/lugatuic/goberus/server"
 )
 
 // appHandler is an application handler that returns an error. Returned
 // errors are considered server errors and are logged/translated to 500 by
 // the adapter in main. Defined at package level so it can be used in tests.
 type appHandler func(w http.ResponseWriter, r *http.Request) error
-
-// handleGetMember handles the GET /v1/member logic. It returns an error for
-// server-side failures; client errors are written directly to the ResponseWriter
-// and return nil so the adapter doesn't treat them as 500s.
-func handleGetMember(client *ldaps.Client, w http.ResponseWriter, r *http.Request) error {
-	username := r.URL.Query().Get("username")
-	if username == "" {
-		http.Error(w, "missing username parameter", http.StatusBadRequest)
-		return nil
-	}
-
-	ctxTimeout, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	info, err := client.GetMemberInfo(ctxTimeout, username)
-	if err != nil {
-		return err
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(info); err != nil {
-		return err
-	}
-	return nil
-}
-
-// handleCreateMember handles the POST /v1/member logic. Same error convention as above.
-func handleCreateMember(client *ldaps.Client, w http.ResponseWriter, r *http.Request) error {
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to close request body: %v\n", err)
-		}
-	}()
-	var u ldaps.UserInfo
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		// client error
-		http.Error(w, "invalid json: "+err.Error(), http.StatusBadRequest)
-		return nil
-	}
-	if err := handlers.SanitizeUser(&u); err != nil {
-		http.Error(w, "invalid input: "+err.Error(), http.StatusBadRequest)
-		return nil
-	}
-
-	ctxTimeout, cancel := context.WithTimeout(r.Context(), 15*time.Second)
-	defer cancel()
-
-	if err := client.AddUser(ctxTimeout, &u); err != nil {
-		return err
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(map[string]string{"status": "created"}); err != nil {
-		return err
-	}
-	return nil
-}
 
 func main() {
 	// initialize structured logger early so we can log config errors
@@ -117,9 +56,9 @@ func main() {
 	userApp := appHandler(func(w http.ResponseWriter, r *http.Request) error {
 		switch r.Method {
 		case http.MethodGet:
-			return handleGetMember(client, w, r)
+			return server.HandleGetMember(client, w, r)
 		case http.MethodPost:
-			return handleCreateMember(client, w, r)
+			return server.HandleCreateMember(client, w, r)
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
