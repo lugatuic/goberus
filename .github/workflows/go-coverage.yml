@@ -1,0 +1,29 @@
+name: Go Test Coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Generate Go Test Coverage
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: Upload Coverage Report
+        if: github.event_name == 'pull_request'
+        uses: fgrosse/go-coverage-report@v2
+        with:
+          coverage-file: coverage.out
