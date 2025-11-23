@@ -8,6 +8,8 @@ import (
 	"github.com/lugatuic/goberus/ldaps"
 )
 
+var validUser = regexp.MustCompile(`^[A-Za-z0-9@._-]{2,64}$`)
+
 // SanitizeUser trims fields and validates username.
 func SanitizeUser(u *ldaps.UserInfo) error {
 	if u == nil {
@@ -27,7 +29,6 @@ func SanitizeUser(u *ldaps.UserInfo) error {
 		return fmt.Errorf("username is required")
 	}
 
-	var validUser = regexp.MustCompile(`^[A-Za-z0-9@._-]{2,64}$`)
 	if !validUser.MatchString(u.Username) {
 		return fmt.Errorf("username must be 2-64 characters and contain only letters, numbers, @, ., _, or -")
 	}
