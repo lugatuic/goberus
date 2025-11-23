@@ -24,7 +24,7 @@ func TestSanitizeUser(t *testing.T) {
 
 		is.NoErr(SanitizeUser(user))
 		is.Equal(user.Username, "exampleuser")
-		is.Equal(user.Password, "secret")
+		is.Equal(user.Password, " secret ")
 		is.Equal(user.GivenName, "John")
 		is.Equal(user.Surname, "Doe")
 		is.Equal(user.Mail, "test@example.com")

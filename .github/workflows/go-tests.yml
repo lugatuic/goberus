@@ -32,7 +32,7 @@ jobs:
           GOMODCACHE: ${{ github.workspace }}/.cache/pkg/mod
 
       - name: Run handler tests
-        run: go test ./tests/server/handlers_test.go
+        run: go test ./tests/server
 
       - name: Run full test suite
         run: go test ./...
