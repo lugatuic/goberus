@@ -1,5 +1,7 @@
 # Goberus
 
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+
 A minimal LDAP-backed service that exposes member lookup and provisioning workflows via `/v1/member`.
 
 ## Status
