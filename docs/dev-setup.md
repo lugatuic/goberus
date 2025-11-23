@@ -95,7 +95,7 @@ Example step:
 
 ## Behavior & notes
 - Authentication: the current implementation prefers bind-as-user for authentication; only the read/search endpoint (`/v1/member`) and the POST `/v1/member` user creation endpoint are exposed.
-- Active Directory password operations still require LDAPS + AD's `unicodePwd` behavior; these are not implemented yet.
+- Active Directory password operations run over LDAPS using AD's `unicodePwd` behavior when creating users (`ldaps.AddUser` now calls `setUnicodePwd` and `enableAccount`).
 - TLS: do not use `LDAP_SKIP_VERIFY=true` in production. Provide a CA via `LDAP_CA_CERT` or trust a CA that already exists in the container.
 
 ## Troubleshooting
