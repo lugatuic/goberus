@@ -24,6 +24,8 @@ func SanitizeUser(u *ldaps.UserInfo) error {
 	u.Phone = strings.TrimSpace(u.Phone)
 	u.Description = strings.TrimSpace(u.Description)
 	u.OrganizationalUnit = strings.TrimSpace(u.OrganizationalUnit)
+	u.CustomAttrs.Major = strings.TrimSpace(u.CustomAttrs.Major)
+	u.CustomAttrs.College = strings.TrimSpace(u.CustomAttrs.College)
 
 	if u.Username == "" {
 		return fmt.Errorf("username is required")

@@ -78,6 +78,12 @@ func (c *Client) buildAddRequest(dn string, u *UserInfo) *ldap.AddRequest {
 	if u.Description != "" {
 		req.Attribute("description", []string{u.Description})
 	}
+	if u.CustomAttrs.Major != "" {
+		req.Attribute("extensionAttribute1", []string{u.CustomAttrs.Major})
+	}
+	if u.CustomAttrs.College != "" {
+		req.Attribute("extensionAttribute2", []string{u.CustomAttrs.College})
+	}
 
 	dcParts := parseDCParts(c.cfg.BaseDN)
 	if len(dcParts) > 0 {

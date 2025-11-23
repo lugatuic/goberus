@@ -14,15 +14,20 @@ type MemberInfo struct {
 
 // UserInfo represents the minimal user registration payload used by AddUser.
 type UserInfo struct {
-	Username           string `json:"username"`
-	Password           string `json:"password"`
-	GivenName          string `json:"givenName,omitempty"`
-	Surname            string `json:"surname,omitempty"`
-	DisplayName        string `json:"displayName,omitempty"`
-	Mail               string `json:"mail,omitempty"`
-	Phone              string `json:"phone,omitempty"`
-	Major              string `json:"major,omitempty"`
-	College            string `json:"college,omitempty"`
-	Description        string `json:"description,omitempty"`
-	OrganizationalUnit string `json:"ou,omitempty"`
+	Username           string                 `json:"username"`
+	Password           string                 `json:"password"`
+	GivenName          string                 `json:"givenName,omitempty"`
+	Surname            string                 `json:"surname,omitempty"`
+	DisplayName        string                 `json:"displayName,omitempty"`
+	Mail               string                 `json:"mail,omitempty"`
+	Phone              string                 `json:"phone,omitempty"`
+	Description        string                 `json:"description,omitempty"`
+	OrganizationalUnit string                 `json:"ou,omitempty"`
+	CustomAttrs        CustomSchemaAttributes `json:"custom,omitempty"`
+}
+
+// CustomSchemaAttributes captures application-defined AD attributes that are not in the default schema.
+type CustomSchemaAttributes struct {
+	Major   string `json:"major,omitempty"`
+	College string `json:"college,omitempty"`
 }
