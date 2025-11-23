@@ -1,0 +1,3 @@
+# CodeQL configuration for Goberus
+queries:
+  - security-and-quality
