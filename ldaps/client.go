@@ -3,13 +3,13 @@ package ldaps
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+
 	"github.com/lugatuic/goberus/config"
 )
 
@@ -34,19 +34,17 @@ type Client struct {
 
 // NewClient prepares a Client and TLS settings (but does not connect yet).
 func NewClient(cfg *config.Config) (*Client, error) {
-	var c *Client = &Client{cfg: cfg}
+	c := &Client{cfg: cfg}
 
 	// Build tls.Config
-	var tlsCfg *tls.Config = &tls.Config{
+	tlsCfg := &tls.Config{
 		InsecureSkipVerify: cfg.SkipVerify, // if true, skip verification (not recommended)
 		MinVersion:         tls.VersionTLS12,
 	}
 
 	// If a CA cert is provided, load it and set RootCAs
 	if cfg.CACertPath != "" {
-		var pool *x509.CertPool
-		var err error
-		pool, err = config.LoadCAPool(cfg.CACertPath)
+		pool, err := config.LoadCAPool(cfg.CACertPath)
 		if err != nil {
 			return nil, fmt.Errorf("load CA pool: %w", err)
 		}
@@ -64,22 +62,17 @@ func NewClient(cfg *config.Config) (*Client, error) {
 func (c *Client) dialAndBind(ctx context.Context) (*ldap.Conn, error) {
 	// Build ldaps URL via DialURL; ldap.DialURL accepts scheme
 	// Expect cfg.LdapAddr like "dc.example.local:636" or "1.2.3.4:636"
-	var ldapsURL string = fmt.Sprintf("ldaps://%s", c.cfg.LdapAddr)
+	ldapsURL := fmt.Sprintf("ldaps://%s", c.cfg.LdapAddr)
 
 	// Dial with timeout via context
-	var dialer *net.Dialer = &net.Dialer{}
-	var conn *ldap.Conn
-	var err error
-	conn, err = ldap.DialURL(ldapsURL, ldap.DialWithDialer(dialer), ldap.DialWithTLSConfig(c.tlsConfig))
+	dialer := &net.Dialer{}
+	conn, err := ldap.DialURL(ldapsURL, ldap.DialWithDialer(dialer), ldap.DialWithTLSConfig(c.tlsConfig))
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial LDAPS %s: %w", ldapsURL, err)
 	}
 
 	// Set a per-connection deadline using context deadline if present
-	var dl time.Time
-	var ok bool
-	dl, ok = ctx.Deadline()
-	if ok {
+	if dl, ok := ctx.Deadline(); ok {
 		conn.SetTimeout(time.Until(dl))
 	} else {
 		conn.SetTimeout(10 * time.Second)
@@ -87,9 +80,7 @@ func (c *Client) dialAndBind(ctx context.Context) (*ldap.Conn, error) {
 
 	// If a service bind DN is provided, bind now
 	if c.cfg.BindDN != "" {
-		var bindErr error
-		bindErr = conn.Bind(c.cfg.BindDN, c.cfg.BindPassword)
-		if bindErr != nil {
+		if bindErr := conn.Bind(c.cfg.BindDN, c.cfg.BindPassword); bindErr != nil {
 			conn.Close()
 			return nil, fmt.Errorf("service bind failed: %w", bindErr)
 		}
@@ -100,9 +91,7 @@ func (c *Client) dialAndBind(ctx context.Context) (*ldap.Conn, error) {
 // GetMemberInfo searches for a user by userPrincipalName or sAMAccountName and returns selected attributes.
 func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInfo, error) {
 	// create a sub-context with timeout
-	var ctxWithTimeout context.Context
-	var cancel context.CancelFunc
-	ctxWithTimeout, cancel = context.WithTimeout(ctx, 8*time.Second)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 
 	conn, err := c.dialAndBind(ctxWithTimeout)
@@ -113,10 +102,10 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 
 	// build filter to accept either UPN or sAMAccountName
 	// Escape input to avoid LDAP injection - one-line explicit typed declarations
-	var esc string = ldap.EscapeFilter(username)
-	var filter string = fmt.Sprintf("(|(userPrincipalName=%s)(sAMAccountName=%s))", esc, esc)
+	esc := ldap.EscapeFilter(username)
+	filter := fmt.Sprintf("(|(userPrincipalName=%s)(sAMAccountName=%s))", esc, esc)
 
-	var attributes []string = []string{
+	attributes := []string{
 		"distinguishedName",
 		"cn",
 		"displayName",
@@ -127,7 +116,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 		"badPasswordTime",
 	}
 
-	var searchReq *ldap.SearchRequest = ldap.NewSearchRequest(
+	searchReq := ldap.NewSearchRequest(
 		c.cfg.BaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
@@ -140,8 +129,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	)
 
 	// Perform search; note: ldap package does not accept context, so we use conn.SetTimeout above.
-	var sr *ldap.SearchResult
-	sr, err = conn.Search(searchReq)
+	sr, err := conn.Search(searchReq)
 	if err != nil {
 		return nil, fmt.Errorf("ldap search failed: %w", err)
 	}
@@ -149,9 +137,9 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	if len(sr.Entries) == 0 {
 		return nil, fmt.Errorf("no entries found for %s", username)
 	}
-	var entry *ldap.Entry = sr.Entries[0]
+	entry := sr.Entries[0]
 
-	var info *MemberInfo = &MemberInfo{
+	info := &MemberInfo{
 		DN:              entry.GetAttributeValue("distinguishedName"),
 		CN:              entry.GetAttributeValue("cn"),
 		DisplayName:     entry.GetAttributeValue("displayName"),
@@ -162,12 +150,10 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	}
 
 	// memberOf can be multi-valued
-	var members []string = entry.GetAttributeValues("memberOf")
+	members := entry.GetAttributeValues("memberOf")
 	if len(members) > 0 {
-		var normalized []string = make([]string, 0, len(members))
-		var i int
-		for i = 0; i < len(members); i++ {
-			var m string = members[i]
+		normalized := make([]string, 0, len(members))
+		for _, m := range members {
 			normalized = append(normalized, strings.TrimSpace(m))
 		}
 		info.MemberOf = normalized
