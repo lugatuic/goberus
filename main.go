@@ -42,10 +42,10 @@ func main() {
 		var info *ldaps.MemberInfo
 		info, err = client.GetMemberInfo(ctxTimeout, username)
 		if err != nil {
-			http.Error(w, "search error: " + err.Error(), http.StatusInternalServerError)
+			http.Error(w, "search error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-	
+
 		w.Header().Set("Content-Type", "application/json")
 
 		if err = json.NewEncoder(w).Encode(info); err != nil {
