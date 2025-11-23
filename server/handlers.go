@@ -3,9 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/lugatuic/goberus/handlers"
@@ -42,11 +40,6 @@ func HandleGetMember(client UserClient, w http.ResponseWriter, r *http.Request) 
 
 // HandleCreateMember serves POST /v1/member.
 func HandleCreateMember(client UserClient, w http.ResponseWriter, r *http.Request) error {
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to close request body: %v\n", err)
-		}
-	}()
 	var u ldaps.UserInfo
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "invalid json: "+err.Error(), http.StatusBadRequest)
