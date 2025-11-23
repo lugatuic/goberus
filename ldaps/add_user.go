@@ -95,7 +95,9 @@ func parseDCParts(baseDN string) []string {
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		if strings.HasPrefix(strings.ToLower(p), "dc=") {
-			dcParts = append(dcParts, strings.TrimPrefix(p[3:], ""))
+			if len(p) > 3 {
+				dcParts = append(dcParts, p[3:])
+			}
 		}
 	}
 	return dcParts
