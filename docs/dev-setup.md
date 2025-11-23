@@ -1,5 +1,14 @@
 # Development setup
 
+## Table of Contents
+- [Quick start — run locally](#quick-start--run-locally)
+- [Docker — build and run](#docker--build-and-run)
+- [CI tip](#ci-tip)
+- [Environment variables reference](#environment-variables-reference)
+- [Behavior & notes](#behavior--notes)
+- [Troubleshooting](#troubleshooting)
+- [Testing](#testing)
+
 This document walks through the common commands for running and building Goberus locally.
 
 ## Quick start — run locally
