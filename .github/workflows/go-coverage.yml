@@ -29,6 +29,24 @@ jobs:
           name: code-coverage
           path: coverage.out
 
+      - name: Check for baseline workflow run on main
+        id: baseline-check
+        run: |
+          set -e
+          LAST=$(gh run list --status=success --branch=main --workflow=go-coverage.yml --event=push --json=databaseId --limit=1 -q '.[] | .databaseId' || true)
+          if [ -z "$LAST" ]; then
+            echo "no_baseline=true" >> $GITHUB_OUTPUT
+          else
+            echo "no_baseline=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Coverage Report
+        if: github.event_name == 'pull_request' && steps.baseline-check.outputs.no_baseline == 'false'
+        uses: fgrosse/go-coverage-report@v1.2.0
+        with:
+          coverage-artifact-name: code-coverage
+          coverage-file-name: coverage.out
+
       - name: Upload Coverage Report
         if: github.event_name == 'pull_request'
         uses: fgrosse/go-coverage-report@v1.2.0
