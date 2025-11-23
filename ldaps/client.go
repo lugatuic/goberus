@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 	"time"
+	"unicode/utf16"
 
 	"github.com/go-ldap/ldap/v3"
 	"go.uber.org/zap"
@@ -47,6 +48,8 @@ type Client struct {
 	tlsConfig *tls.Config
 	logger    *zap.Logger
 }
+
+// (previously exported a sentinel ErrEntryExists to allow mapping to HTTP 409)
 
 // NewClient prepares a Client and TLS settings (but does not connect yet).
 func NewClient(cfg *config.Config) (*Client, error) {
@@ -179,4 +182,143 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	}
 
 	return info, nil
+}
+
+// escapeDNComponent escapes common DN-special characters.
+func escapeDNComponent(s string) string {
+	var builder strings.Builder
+	for i, r := range s {
+		isSpecial := false
+		switch r {
+		case '\\', ',', '+', '"', '<', '>', ';':
+			isSpecial = true
+		}
+
+		if isSpecial || (i == 0 && r == ' ') || (i == len(s)-1 && r == ' ') {
+			builder.WriteRune('\\')
+		}
+		builder.WriteRune(r)
+	}
+	return builder.String()
+}
+
+// AddUser creates a new LDAP entry for the provided user information.
+func (c *Client) AddUser(ctx context.Context, u *UserInfo) error {
+	ctxTimeout, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	conn, err := c.dialAndBind(ctxTimeout)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// Build DN: CN=<escaped username>,<UserOU>,<BaseDN> or CN=<escaped username>,<BaseDN>
+	escCN := escapeDNComponent(u.Username)
+	var dn string
+	if c.cfg.UserOU != "" {
+		dn = fmt.Sprintf("CN=%s,%s,%s", escCN, c.cfg.UserOU, c.cfg.BaseDN)
+	} else {
+		dn = fmt.Sprintf("CN=%s,%s", escCN, c.cfg.BaseDN)
+	}
+
+	req := ldap.NewAddRequest(dn, nil)
+	req.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "user"})
+	req.Attribute("cn", []string{u.Username})
+
+	sn := u.Surname
+	if sn == "" {
+		sn = u.Username
+	}
+	req.Attribute("sn", []string{sn})
+
+	if u.DisplayName != "" {
+		req.Attribute("displayName", []string{u.DisplayName})
+	}
+	req.Attribute("sAMAccountName", []string{u.Username})
+
+	if u.Mail != "" {
+		req.Attribute("mail", []string{u.Mail})
+	}
+
+	if u.Phone != "" {
+		req.Attribute("telephoneNumber", []string{u.Phone})
+	}
+
+	if u.Description != "" {
+		req.Attribute("description", []string{u.Description})
+	}
+
+	// userPrincipalName: construct from BaseDN's dc components if possible
+	// e.g. BaseDN dc=example,dc=local -> example.local
+	parts := strings.Split(c.cfg.BaseDN, ",")
+	var dcParts []string
+
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if strings.HasPrefix(strings.ToLower(p), "dc=") {
+			dcParts = append(dcParts, strings.TrimPrefix(p[3:], ""))
+		}
+	}
+
+	if len(dcParts) > 0 {
+		domain := strings.Join(dcParts, ".")
+		upn := fmt.Sprintf("%s@%s", u.Username, domain)
+		req.Attribute("userPrincipalName", []string{upn})
+	}
+
+	// For Active Directory, set password via `unicodePwd` (UTF-16LE, quoted),
+	// performed as a separate modify after the add.
+
+	if err := conn.Add(req); err != nil {
+		if c.logger != nil {
+			c.logger.Error("ldap add failed", zap.Error(err), zap.String("dn", dn), zap.String("username", u.Username))
+		}
+		return fmt.Errorf("ldap add failed: %w", err)
+	}
+
+	// If a password was provided, attempt AD-compatible password set via unicodePwd.
+	if u.Password != "" {
+		pwdBytes := encodeUnicodePwd(u.Password)
+		mr := ldap.NewModifyRequest(dn, nil)
+		// Replace unicodePwd with the UTF-16LE encoded quoted password. This must
+		// be done over LDAPS and the bind account must have permission.
+		mr.Replace("unicodePwd", []string{string(pwdBytes)})
+		if err := conn.Modify(mr); err != nil {
+			if c.logger != nil {
+				c.logger.Error("set unicodePwd failed", zap.Error(err), zap.String("dn", dn), zap.String("username", u.Username))
+			}
+			return fmt.Errorf("set unicodePwd failed: %w", err)
+		}
+
+		// Optionally enable the account by setting userAccountControl to 512 (NORMAL_ACCOUNT).
+		// Many ADs create accounts disabled by default; enabling requires appropriate rights.
+		enableMr := ldap.NewModifyRequest(dn, nil)
+		enableMr.Replace("userAccountControl", []string{"512"})
+		if err := conn.Modify(enableMr); err != nil {
+			if c.logger != nil {
+				c.logger.Warn("enable account failed", zap.Error(err), zap.String("dn", dn), zap.String("username", u.Username))
+			}
+			// Not a hard failure in all environments; surface as an error so calling code can see it.
+			return fmt.Errorf("enable account failed: %w", err)
+		}
+	}
+
+	if c.logger != nil {
+		c.logger.Info("user added", zap.String("dn", dn), zap.String("username", u.Username))
+	}
+
+	return nil
+}
+
+// encodeUnicodePwd encodes the quoted password to UTF-16LE for `unicodePwd`.
+func encodeUnicodePwd(pw string) []byte {
+	quoted := "\"" + pw + "\""
+	u := utf16.Encode([]rune(quoted))
+	b := make([]byte, 2*len(u))
+	for i, v := range u {
+		b[i*2] = byte(v)
+		b[i*2+1] = byte(v >> 8)
+	}
+	return b
 }
