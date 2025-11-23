@@ -12,13 +12,9 @@ import (
 	"github.com/lugatuic/goberus/ldaps"
 )
 
-type userClient interface {
+type UserClient interface {
 	GetMemberInfo(ctx context.Context, username string) (*ldaps.MemberInfo, error)
 	AddUser(ctx context.Context, u *ldaps.UserInfo) error
-}
-
-type UserClient interface {
-	userClient
 }
 
 // HandleGetMember serves GET /v1/member.

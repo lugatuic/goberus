@@ -1,6 +1,0 @@
-HTTP/1.1 201 Created
-Content-Type: application/json
-Date: Sun, 23 Nov 2025 04:34:48 GMT
-Content-Length: 21
-
-{"status":"created"}

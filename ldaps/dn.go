@@ -25,9 +25,6 @@ func escapeDNComponent(s string) string {
 func (c *Client) buildUserDN(u *UserInfo) string {
 	escCN := escapeDNComponent(u.Username)
 	ou := strings.TrimSpace(u.OrganizationalUnit)
-	if ou == "" {
-		ou = strings.TrimSpace(c.cfg.UserOU)
-	}
 	if ou != "" {
 		if strings.HasSuffix(strings.ToLower(ou), strings.ToLower(c.cfg.BaseDN)) {
 			return fmt.Sprintf("CN=%s,%s", escCN, ou)
