@@ -24,6 +24,6 @@ jobs:
 
       - name: Upload Coverage Report
         if: github.event_name == 'pull_request'
-        uses: fgrosse/go-coverage-report@v2
+        uses: fgrosse/go-coverage-report@v1.2.0
         with:
           coverage-file: coverage.out
