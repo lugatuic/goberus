@@ -35,7 +35,7 @@ func main() {
 		logger.Fatal("config load failed", zap.Error(err))
 	}
 
-	client, err := ldaps.NewClient(cfg)
+	client, err := ldaps.NewClient(cfg, logger)
 	if err != nil {
 		logger.Fatal("ldaps client init failed", zap.Error(err))
 	}

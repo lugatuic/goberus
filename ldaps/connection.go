@@ -21,8 +21,8 @@ type Client struct {
 }
 
 // NewClient prepares a Client and TLS settings (but does not connect yet).
-func NewClient(cfg *config.Config) (*Client, error) {
-	c := &Client{cfg: cfg}
+func NewClient(cfg *config.Config, logger *zap.Logger) (*Client, error) {
+	c := &Client{cfg: cfg, logger: logger}
 
 	tlsCfg := &tls.Config{
 		InsecureSkipVerify: cfg.SkipVerify,
