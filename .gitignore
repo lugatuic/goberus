@@ -1,2 +1,4 @@
 *.pem
 .DS_Store
+result.txt
+.vscode/settings.json
