@@ -34,5 +34,6 @@ func SanitizeUser(u *ldaps.UserInfo) error {
 	}
 
 	u.Username = strings.ToLower(u.Username)
+	u.OrganizationalUnit = strings.ToLower(u.OrganizationalUnit)
 	return nil
 }

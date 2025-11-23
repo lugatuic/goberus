@@ -123,3 +123,28 @@ func TestHandleCreateMember(t *testing.T) {
 		is.Equal(captured.Username, "testuser")
 	})
 }
+
+func TestSanitizeUserIntegration(t *testing.T) {
+	is := is.New(t)
+	var captured *ldaps.UserInfo
+	client := &fakeUserClient{
+		addUser: func(ctx context.Context, u *ldaps.UserInfo) error {
+			captured = u
+			return nil
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/member", func(w http.ResponseWriter, r *http.Request) {
+		is.NoErr(server.HandleCreateMember(client, w, r))
+	})
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+
+	resp, err := http.Post(ts.URL+"/v1/member", "application/json", strings.NewReader(`{"username":" TestUser ","password":" secret ","ou":" OU=ACMUsers,DC=acmuic,DC=org "}`))
+	is.NoErr(err)
+	defer resp.Body.Close()
+	is.Equal(resp.StatusCode, http.StatusCreated)
+	is.Equal(captured.Username, "testuser")
+	is.Equal(captured.OrganizationalUnit, "ou=acmusers,dc=acmuic,dc=org")
+}
