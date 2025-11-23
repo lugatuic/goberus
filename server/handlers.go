@@ -40,6 +40,7 @@ func HandleGetMember(client UserClient, w http.ResponseWriter, r *http.Request) 
 
 // HandleCreateMember serves POST /v1/member.
 func HandleCreateMember(client UserClient, w http.ResponseWriter, r *http.Request) error {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MiB limit
 	var u ldaps.UserInfo
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "invalid json: "+err.Error(), http.StatusBadRequest)
