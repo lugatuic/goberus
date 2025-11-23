@@ -149,8 +149,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	if len(sr.Entries) == 0 {
 		return nil, fmt.Errorf("no entries found for %s", username)
 	}
-	var entry *ldap.Entry
-	entry = sr.Entries[0]
+	var entry *ldap.Entry = sr.Entries[0]
 
 	var info *MemberInfo = &MemberInfo{
 		DN:              entry.GetAttributeValue("distinguishedName"),
