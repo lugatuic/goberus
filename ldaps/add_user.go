@@ -67,6 +67,9 @@ func (c *Client) buildAddRequest(dn string, u *UserInfo) *ldap.AddRequest {
 	if u.DisplayName != "" {
 		req.Attribute("displayName", []string{u.DisplayName})
 	}
+	if u.GivenName != "" {
+		req.Attribute("givenName", []string{u.GivenName})
+	}
 	req.Attribute("sAMAccountName", []string{u.Username})
 
 	if u.Mail != "" {
