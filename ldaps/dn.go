@@ -10,7 +10,7 @@ func escapeDNComponent(s string) string {
 	for i, r := range s {
 		isSpecial := false
 		switch r {
-		case '\\', ',', '+', '"', '<', '>', ';':
+		case '\\', ',', '+', '"', '<', '>', ';', '#', '=':
 			isSpecial = true
 		}
 
