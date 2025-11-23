@@ -33,4 +33,6 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: fgrosse/go-coverage-report@v1.2.0
         with:
-          coverage-file: coverage.out
+          coverage-artifact-name: code-coverage
+          coverage-file-name: coverage.out
+          github-baseline-workflow-ref: main
