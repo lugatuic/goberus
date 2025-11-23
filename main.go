@@ -51,7 +51,6 @@ func main() {
 			var info *ldaps.MemberInfo
 			info, err = client.GetMemberInfo(ctxTimeout, username)
 			if err != nil {
-				logger.Error("member lookup failed", zap.Error(err), zap.String("username", username))
 				http.Error(w, "search error: "+err.Error(), http.StatusInternalServerError)
 				return
 			}

@@ -62,10 +62,8 @@ func LoadCAPool(caPath string) (*x509.CertPool, error) {
 	if err != nil {
 		return nil, err
 	}
-	var pool *x509.CertPool = x509.NewCertPool()
-	var ok bool
-	ok = pool.AppendCertsFromPEM(pemData)
-	if !ok {
+	pool := x509.NewCertPool()
+	if ok := pool.AppendCertsFromPEM(pemData); !ok {
 		return nil, fmt.Errorf("failed to parse CA certificate(s) from %s", caPath)
 	}
 	return pool, nil
