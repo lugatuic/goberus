@@ -37,6 +37,6 @@ func TestSanitizeUser(t *testing.T) {
 
 		err := SanitizeUser(&ldaps.UserInfo{Username: "!"})
 		is.True(err != nil)
-		is.True(strings.Contains(err.Error(), "invalid characters"))
+		is.True(strings.Contains(err.Error(), "username must be 2-64 characters"))
 	})
 }

@@ -29,7 +29,7 @@ func SanitizeUser(u *ldaps.UserInfo) error {
 
 	var validUser = regexp.MustCompile(`^[A-Za-z0-9@._-]{2,64}$`)
 	if !validUser.MatchString(u.Username) {
-		return fmt.Errorf("username contains invalid characters")
+		return fmt.Errorf("username must be 2-64 characters and contain only letters, numbers, @, ., _, or -")
 	}
 
 	u.Username = strings.ToLower(u.Username)
