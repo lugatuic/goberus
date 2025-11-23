@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matryer/is"
+
 	"github.com/lugatuic/goberus/ldaps"
 	"github.com/lugatuic/goberus/server"
-	"github.com/matryer/is"
 )
 
 type fakeUserClient struct {
@@ -143,7 +144,7 @@ func TestSanitizeUserIntegration(t *testing.T) {
 
 	resp, err := http.Post(ts.URL+"/v1/member", "application/json", strings.NewReader(`{"username":" TestUser ","password":" secret ","ou":" OU=ACMUsers,DC=acmuic,DC=org "}`))
 	is.NoErr(err)
-	defer resp.Body.Close()
+	defer func() { is.NoErr(resp.Body.Close()) }()
 	is.Equal(resp.StatusCode, http.StatusCreated)
 	is.Equal(captured.Username, "testuser")
 	is.Equal(captured.OrganizationalUnit, "ou=acmusers,dc=acmuic,dc=org")

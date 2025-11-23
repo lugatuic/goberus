@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lugatuic/goberus/ldaps"
 	"github.com/matryer/is"
+
+	"github.com/lugatuic/goberus/ldaps"
 )
 
 func TestSanitizeUser(t *testing.T) {
