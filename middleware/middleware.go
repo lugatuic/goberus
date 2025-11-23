@@ -8,6 +8,29 @@ import (
 )
 
 // Logger logs requests around the provided handler.
+type responseLogger struct {
+	http.ResponseWriter
+	status int
+	size   int
+}
+
+func (r *responseLogger) WriteHeader(statusCode int) {
+	if r.status == 0 {
+		r.status = statusCode
+	}
+	r.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (r *responseLogger) Write(b []byte) (int, error) {
+	if r.status == 0 {
+		r.status = http.StatusOK
+	}
+	n, err := r.ResponseWriter.Write(b)
+	r.size += n
+	return n, err
+}
+
+// Logger logs request timing, status, and response size.
 func Logger(logger *zap.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -16,11 +39,18 @@ func Logger(logger *zap.Logger, next http.Handler) http.Handler {
 			zap.String("path", r.URL.Path),
 			zap.String("remote", r.RemoteAddr),
 		)
-		next.ServeHTTP(w, r)
+		lrw := &responseLogger{ResponseWriter: w}
+		next.ServeHTTP(lrw, r)
+		status := lrw.status
+		if status == 0 {
+			status = http.StatusOK
+		}
 		logger.Info("request.done",
 			zap.String("method", r.Method),
 			zap.String("path", r.URL.Path),
 			zap.Duration("duration", time.Since(start)),
+			zap.Int("status", status),
+			zap.Int("bytes", lrw.size),
 		)
 	})
 }
