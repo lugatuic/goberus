@@ -1,7 +1,6 @@
 # Goberus
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Go Coverage](https://img.shields.io/github/actions/workflow/status/lugatuic/goberus/.github/workflows/go-coverage.yml?branch=main)
 
 A minimal LDAP-backed service that exposes member lookup and provisioning workflows via `/v1/member`.
 
