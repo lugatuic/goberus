@@ -19,6 +19,7 @@ jobs:
       TEST_BIND_PASSWORD: ${{ secrets.TEST_BIND_PASSWORD || 'TestPass123!' }}
       TEST_LDAP_PORT: ${{ vars.TEST_LDAP_PORT || '636' }}
       TEST_LDAP_USE_TLS: ${{ vars.TEST_LDAP_USE_TLS || 'true' }}
+      TEST_DNS_FORWARDER: ${{ vars.TEST_DNS_FORWARDER || '8.8.8.8' }}
       INTEGRATION_TESTS: "true"
     steps:
       - name: Check out code
@@ -30,6 +31,13 @@ jobs:
       - name: Build and start services
         run: |
           docker compose -f docker-compose.yml up -d samba goberus
+          # Wait for samba healthcheck
+          for i in {1..60}; do
+            if docker compose ps samba | grep -q "healthy"; then
+              break
+            fi
+            sleep 1
+          done
 
       - name: Run integration tests
         run: |
