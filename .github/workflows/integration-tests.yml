@@ -34,10 +34,18 @@ jobs:
           # Wait for samba healthcheck
           for i in {1..60}; do
             if docker compose ps samba | grep -q "healthy"; then
+              echo "Samba healthy"
               break
             fi
+            echo "Attempt $i: Waiting for samba..."
             sleep 1
           done
+
+      - name: Check samba status
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml ps
+          docker compose -f docker-compose.yml logs samba --tail=50
 
       - name: Run integration tests
         run: |
