@@ -102,5 +102,9 @@ func (s *Server) makeAppHandler(fn appHandler) http.Handler {
 func respondJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		// Log encoding failure but response headers already sent
+		// Best we can do is note it happened
+		_, _ = w.Write([]byte("\n"))
+	}
 }

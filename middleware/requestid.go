@@ -13,8 +13,12 @@ func RequestID(next http.Handler) http.Handler {
 		id := r.Header.Get("X-Request-ID")
 		if id == "" {
 			var b [16]byte
-			_, _ = rand.Read(b[:])
-			id = hex.EncodeToString(b[:])
+			if _, err := rand.Read(b[:]); err != nil {
+				// Fallback to a basic ID if crypto/rand fails (extremely rare)
+				id = "fallback-id"
+			} else {
+				id = hex.EncodeToString(b[:])
+			}
 			r.Header.Set("X-Request-ID", id)
 		}
 		w.Header().Set("X-Request-ID", id)
