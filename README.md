@@ -9,7 +9,6 @@ A minimal LDAP-backed service that exposes member lookup and provisioning workfl
 - [x] `POST /v1/member` — sanitizes the JSON payload (trim + lowercase for `username`/`OrganizationalUnit`) with `handlers.SanitizeUser` before invoking `ldaps.Client.AddUser`.
 - [ ] `DELETE /v1/member` — TODO: expose member removal once LDAP delete semantics and authorization are finalized.
 - [ ] `PATCH /v1/member` — TODO: introduce attribute updates once LDAP modify flows are defined.
-- `tests/server/handlers_test.go` covers the handler flows (including an integration-style `httptest.NewServer` canary), and `handlers/users_test.go` focuses on `SanitizeUser`.
 
 ## Development & testing
 See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./tests/server -run TestHandleGetMember`, `go test ./tests/server -run TestHandleCreateMember`, `go test ./tests/server -run TestSanitizeUserIntegration`, `go test ./...`).
