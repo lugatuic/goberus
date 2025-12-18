@@ -36,10 +36,13 @@ Key upcoming features:
 ├── middleware/          # HTTP middleware (RequestID, Recover, Logger)
 ├── server/              # HTTP handlers and server-facing types
 ├── handlers/            # auxiliary handler helpers used in tests/CLI
+├── tests/
+│   └── integration/     # end-to-end integration tests with Samba AD
 ├── docs/                # developer and operational documentation
 ├── ADR/                 # Architecture Decision Records
-├── Makefile
+├── docker-compose.yml   # local test environment (Samba AD + Goberus)
 ├── Dockerfile
+├── Makefile
 └── README.md
 ```
 
