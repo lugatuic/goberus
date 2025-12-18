@@ -42,14 +42,15 @@ func New(cfg *config.Config, logger *zap.Logger, client UserClient) *Server {
 // Handler wires routes and middleware, returning the root handler.
 func (s *Server) Handler() http.Handler {
 	// Health endpoints
-	s.mux.HandleFunc("/live", func(w http.ResponseWriter, r *http.Request) {
+	s.mux.HandleFunc("/livez", func(w http.ResponseWriter, r *http.Request) {
 		respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	s.mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+	s.mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		if err := s.client.Ping(ctx); err != nil {
+			s.logger.Warn("readyz.ping_failed", zap.Error(err))
 			respondJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "degraded"})
 			return
 		}

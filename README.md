@@ -5,8 +5,8 @@
 A minimal LDAP-backed service that exposes member lookup and provisioning workflows via `/v1/member`.
 
 ## Status
-- [x] `GET /live` — liveness endpoint (always returns 200 OK with `{"status":"ok"}`)
-- [x] `GET /ready` — readiness endpoint (returns 200 if LDAP is reachable, 503 otherwise)
+- [x] `GET /livez` — liveness endpoint (always returns 200 OK with `{"status":"ok"}`)
+- [x] `GET /readyz` — readiness endpoint (returns 200 if LDAP is reachable, 503 otherwise)
 - [x] `GET /v1/member?username=<value>` — resolves a user by UPN or sAMAccountName and returns normalized attributes via `server.UserClient` backed by `ldaps.Client` in production and fakes in tests.
 - [x] `POST /v1/member` — sanitizes the JSON payload (trim + lowercase for `username`/`OrganizationalUnit`) with `handlers.SanitizeUser` before invoking `ldaps.Client.AddUser`.
 - [ ] `DELETE /v1/member` — TODO: expose member removal once LDAP delete semantics and authorization are finalized.

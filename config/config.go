@@ -4,6 +4,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -25,22 +27,28 @@ func LoadFromEnv() (*Config, error) {
 		BindPassword: os.Getenv("LDAP_BIND_PASSWORD"),
 		CACertPath:   os.Getenv("LDAP_CA_CERT"),
 	}
-	if getenv("LDAP_SKIP_VERIFY", "false") == "true" {
-		cfg.SkipVerify = true
-	}
-	// If user provided a CA cert path, ensure it exists (we'll try to load it later)
-	if cfg.CACertPath != "" {
-		var statErr error
-		_, statErr = os.Stat(cfg.CACertPath)
-		if statErr != nil {
-			return nil, fmt.Errorf("LDAP_CA_CERT file not accessible: %w", statErr)
-		}
-	}
+	cfg.SkipVerify = boolFromEnv("LDAP_SKIP_VERIFY", false)
+	// CA cert path is optional; if provided, it will be validated at connection time.
+	// Do not check existence here to support containers where the CA file may not be
+	// available immediately at startup (e.g., Samba initialization in docker-compose).
 	// Basic validation
 	if cfg.BaseDN == "" {
 		return nil, fmt.Errorf("LDAP_BASE_DN must be set")
 	}
 	return cfg, nil
+}
+
+func boolFromEnv(key string, def bool) bool {
+	val, ok := os.LookupEnv(key)
+	if !ok || val == "" {
+		return def
+	}
+	trimmed := strings.Trim(val, "\"'")
+	b, err := strconv.ParseBool(trimmed)
+	if err != nil {
+		return def
+	}
+	return b
 }
 
 func getenv(k, def string) string {

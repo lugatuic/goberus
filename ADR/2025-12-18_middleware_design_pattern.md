@@ -10,7 +10,7 @@ The service currently uses `net/http` with custom middleware and a root-level `m
 Adopt the Mat Ryer–style HTTP service structure:
 - Provide a dedicated entrypoint at `cmd/goberus/main.go` that configures `http.Server` timeouts, starts the server in a goroutine, and performs graceful shutdown on SIGINT/SIGTERM.
 - Add `internal/httpserver` to compose dependencies, wire routes, and enforce JSON responses without leaking internal errors.
-- Expose health endpoints: `/live` (always 200) and `/ready` (checks LDAP via `ldaps.Client.Ping(ctx)`).
+- Expose health endpoints: `/livez` (always 200) and `/readyz` (checks LDAP via `ldaps.Client.Ping(ctx)`).
 - Apply middleware ordering: `Recover` (outermost) → `RequestID` → `Logger` to ensure correlation IDs and stable logging.
 - Remove the legacy root `main.go` in favor of the structured entrypoint.
 

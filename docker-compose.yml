@@ -1,0 +1,83 @@
+services:
+  samba:
+    image: nowsci/samba-domain:latest
+    platform: linux/amd64
+    container_name: goberus-samba
+    privileged: true
+    environment:
+      DOMAIN: ${TEST_DOMAIN:-TESTDOMAIN.LOCAL}
+      DOMAINPASS: ${TEST_DOMAIN_PASS:-TestPass123!}
+      DNSFORWARDER: ${TEST_DNS_FORWARDER:-8.8.8.8}
+    dns:
+      - 127.0.0.1
+    volumes:
+      - samba-data:/var/lib/samba
+      - samba-config:/etc/samba/external
+    ports:
+      - "389:389"
+      - "636:636"
+    healthcheck:
+      test: ["CMD", "smbclient", "-L", "localhost", "-U", "%"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  goberus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION:-dev}
+    platform: linux/amd64
+    container_name: goberus-app
+    depends_on:
+      samba:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/livez"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    environment:
+      LDAP_ADDR: samba:${TEST_LDAP_PORT:-636}
+      LDAP_HOST: samba
+      LDAP_PORT: ${TEST_LDAP_PORT:-636}
+      LDAP_BASE_DN: ${TEST_BASE_DN:-DC=testdomain,DC=local}
+      LDAP_BIND_DN: ${TEST_BIND_DN:-CN=Administrator,CN=Users,DC=testdomain,DC=local}
+      LDAP_BIND_PASSWORD: ${TEST_BIND_PASSWORD:-TestPass123!}
+      LDAP_USE_TLS: ${TEST_LDAP_USE_TLS:-true}
+      LDAP_SKIP_VERIFY: ${TEST_LDAP_SKIP_VERIFY:-true}
+      LDAP_CA_CERT: ""
+      BIND_ADDR: ":8080"
+    volumes:
+      - samba-data:/samba-shared:ro
+
+  test-runner:
+    image: golang:1.21
+    platform: linux/amd64
+    container_name: goberus-test-runner
+    depends_on:
+      goberus:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      INTEGRATION_TESTS: "true"
+      INTEGRATION_BASE_URL: http://goberus:8080
+      TEST_DOMAIN: ${TEST_DOMAIN:-TESTDOMAIN.LOCAL}
+      TEST_DOMAIN_PASS: ${TEST_DOMAIN_PASS:-TestPass123!}
+      TEST_BASE_DN: ${TEST_BASE_DN:-DC=testdomain,DC=local}
+      TEST_BIND_DN: ${TEST_BIND_DN:-CN=Administrator,CN=Users,DC=testdomain,DC=local}
+      TEST_BIND_PASSWORD: ${TEST_BIND_PASSWORD:-TestPass123!}
+      TEST_LDAP_PORT: ${TEST_LDAP_PORT:-636}
+      TEST_LDAP_USE_TLS: ${TEST_LDAP_USE_TLS:-"true"}
+    command: ["/bin/sh", "-c", "go test ./tests/integration -v"]
+
+volumes:
+  samba-data:
+  samba-config:

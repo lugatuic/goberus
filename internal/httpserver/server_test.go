@@ -42,7 +42,7 @@ func (f *fakeClient) AddUser(ctx context.Context, u *ldaps.UserInfo) error {
 }
 
 func TestHealthEndpoints(t *testing.T) {
-	t.Run("/live returns OK", func(t *testing.T) {
+	t.Run("/livez returns OK", func(t *testing.T) {
 		is := is.New(t)
 		logger := zap.NewNop()
 		cfg := &config.Config{BindAddr: ":8080"}
@@ -51,7 +51,7 @@ func TestHealthEndpoints(t *testing.T) {
 		s := httpserver.New(cfg, logger, client)
 		handler := s.Handler()
 
-		req := httptest.NewRequest(http.MethodGet, "/live", nil)
+		req := httptest.NewRequest(http.MethodGet, "/livez", nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 
@@ -63,7 +63,7 @@ func TestHealthEndpoints(t *testing.T) {
 		is.Equal(resp["status"], "ok")
 	})
 
-	t.Run("/ready returns OK when LDAP ping succeeds", func(t *testing.T) {
+	t.Run("/readyz returns OK when LDAP ping succeeds", func(t *testing.T) {
 		is := is.New(t)
 		logger := zap.NewNop()
 		cfg := &config.Config{BindAddr: ":8080"}
@@ -72,7 +72,7 @@ func TestHealthEndpoints(t *testing.T) {
 		s := httpserver.New(cfg, logger, client)
 		handler := s.Handler()
 
-		req := httptest.NewRequest(http.MethodGet, "/ready", nil)
+		req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 
@@ -84,7 +84,7 @@ func TestHealthEndpoints(t *testing.T) {
 		is.Equal(resp["status"], "ready")
 	})
 
-	t.Run("/ready returns degraded when LDAP ping fails", func(t *testing.T) {
+	t.Run("/readyz returns degraded when LDAP ping fails", func(t *testing.T) {
 		is := is.New(t)
 		logger := zap.NewNop()
 		cfg := &config.Config{BindAddr: ":8080"}
@@ -93,7 +93,7 @@ func TestHealthEndpoints(t *testing.T) {
 		s := httpserver.New(cfg, logger, client)
 		handler := s.Handler()
 
-		req := httptest.NewRequest(http.MethodGet, "/ready", nil)
+		req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 
@@ -210,7 +210,7 @@ func TestRequestIDPreservation(t *testing.T) {
 	handler := s.Handler()
 
 	existingID := "my-custom-request-id"
-	req := httptest.NewRequest(http.MethodGet, "/live", nil)
+	req := httptest.NewRequest(http.MethodGet, "/livez", nil)
 	req.Header.Set("X-Request-ID", existingID)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)

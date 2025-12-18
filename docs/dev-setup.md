@@ -42,8 +42,8 @@ go build -o goberus ./cmd/goberus
 4. Query the service
 ```bash
 # Health endpoints
-curl http://localhost:8080/live       # Liveness check (always returns 200)
-curl http://localhost:8080/ready      # Readiness check (verifies LDAP connectivity)
+curl http://localhost:8080/livez       # Liveness check (always returns 200)
+curl http://localhost:8080/readyz      # Readiness check (verifies LDAP connectivity)
 
 # Business endpoints
 curl 'http://localhost:8080/v1/member?username=jdoe' | jq .
@@ -56,7 +56,7 @@ curl --header "Content-Type: application/json" \
   http://localhost:8080/v1/member | jq .
 
 # Test request ID correlation (server echoes back X-Request-ID)
-curl -H "X-Request-ID: my-test-id-123" http://localhost:8080/live -v
+curl -H "X-Request-ID: my-test-id-123" http://localhost:8080/livez -v
 ```
 
 ## Docker — build and run
