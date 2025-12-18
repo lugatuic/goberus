@@ -4,8 +4,6 @@
 
 A minimal LDAP-backed service that exposes member lookup and provisioning workflows via `/v1/member`.
 
-**Architecture**: Following [Mat Ryer's HTTP service patterns](https://grafana.com/blog/how-i-write-http-services-in-go-after-13-years/), the service uses a dedicated entrypoint at `cmd/goberus/main.go` with graceful shutdown, hardened timeouts, health endpoints, and request correlation via `X-Request-ID` headers. See [ADR.md](ADR.md) for architectural decisions.
-
 ## Status
 - [x] `GET /live` — liveness endpoint (always returns 200 OK with `{"status":"ok"}`)
 - [x] `GET /ready` — readiness endpoint (returns 200 if LDAP is reachable, 503 otherwise)
@@ -15,13 +13,32 @@ A minimal LDAP-backed service that exposes member lookup and provisioning workfl
 - [ ] `PATCH /v1/member` — TODO: introduce attribute updates once LDAP modify flows are defined.
 
 ## Development & testing
-See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./tests/server -run TestHandleGetMember`, `go test ./tests/server -run TestHandleCreateMember`, `go test ./tests/server -run TestSanitizeUserIntegration`, `go test ./...`).
+See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./...`).
 
 ## Next steps
 - Add API authentication and rate limiting
 - Implement connection pooling/reconnect semantics
 - Handle LDAPS password changes via `unicodePwd`
 - Expand unit/integration coverage (e.g., Docker-compose with Samba AD)
+
+## Project layout
+```
+.
+├── cmd/
+│   └── goberus/         # application entrypoint and process lifecycle
+├── config/              # configuration loading and validation
+├── internal/
+│   └── httpserver/      # server composition, route wiring, JSON helpers
+├── ldaps/               # LDAP client, models, helpers
+├── middleware/          # HTTP middleware (RequestID, Recover, Logger)
+├── server/              # HTTP handlers and server-facing types
+├── handlers/            # auxiliary handler helpers used in tests/CLI
+├── docs/                # developer and operational documentation
+├── ADR/                 # Architecture Decision Records
+├── Makefile
+├── Dockerfile
+└── README.md
+```
 
 ## License
 Goberus is open-source software distributed under the terms of the [GNU General Public License v3](LICENSE). See `LICENSE` for the full text and warranty disclaimer.
