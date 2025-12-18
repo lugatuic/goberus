@@ -16,10 +16,13 @@ A minimal LDAP-backed service that exposes member lookup and provisioning workfl
 See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./...`).
 
 ## Next steps
+See [TODO.md](TODO.md) for a complete list of planned features and improvements.
+
+Key upcoming features:
+- Implement `DELETE /v1/member` and `PATCH /v1/member` endpoints
 - Add API authentication and rate limiting
+- Publish as GitHub package (deferred until DELETE and PATCH are complete)
 - Implement connection pooling/reconnect semantics
-- Handle LDAPS password changes via `unicodePwd`
-- Expand unit/integration coverage (e.g., Docker-compose with Samba AD)
 
 ## Project layout
 ```
