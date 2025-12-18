@@ -7,7 +7,11 @@ import (
 	"github.com/go-ldap/ldap/v3"
 )
 
-func (c *Client) setUnicodePwd(conn *ldap.Conn, dn, password string) error {
+type ldapModifier interface {
+	Modify(*ldap.ModifyRequest) error
+}
+
+func (c *Client) setUnicodePwd(conn ldapModifier, dn, password string) error {
 	if password == "" {
 		return nil
 	}
@@ -20,7 +24,7 @@ func (c *Client) setUnicodePwd(conn *ldap.Conn, dn, password string) error {
 	return nil
 }
 
-func (c *Client) enableAccount(conn *ldap.Conn, dn string) error {
+func (c *Client) enableAccount(conn ldapModifier, dn string) error {
 	mr := ldap.NewModifyRequest(dn, nil)
 	mr.Replace("userAccountControl", []string{"512"})
 	if err := conn.Modify(mr); err != nil {
