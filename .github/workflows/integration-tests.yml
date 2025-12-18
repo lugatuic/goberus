@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      TEST_DOMAIN: ${{ vars.TEST_DOMAIN || 'TESTDOMAIN' }}
+      TEST_DOMAIN: ${{ vars.TEST_DOMAIN || 'TESTDOMAIN.LOCAL' }}
       TEST_DOMAIN_PASS: ${{ secrets.TEST_DOMAIN_PASS || 'TestPass123!' }}
       TEST_BASE_DN: ${{ vars.TEST_BASE_DN || 'DC=testdomain,DC=local' }}
       TEST_BIND_DN: ${{ vars.TEST_BIND_DN || 'CN=Administrator,CN=Users,DC=testdomain,DC=local' }}
