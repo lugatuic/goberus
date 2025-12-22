@@ -61,6 +61,7 @@ func (c *Client) GetMemberInfo(ctx context.Context, username string) (*MemberInf
 	entry := sr.Entries[0]
 
 	info := &MemberInfo{
+		Username:        strings.ToLower(entry.GetAttributeValue("sAMAccountName")),
 		DN:              entry.GetAttributeValue("distinguishedName"),
 		CN:              entry.GetAttributeValue("cn"),
 		DisplayName:     entry.GetAttributeValue("displayName"),

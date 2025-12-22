@@ -1,6 +1,6 @@
 # Dockerfile - multi-stage build for Goberus
 # Stage 1: build binary
-FROM golang:1.21 AS builder
+FROM golang:1.23 AS builder
 
 # Set working dir
 WORKDIR /src
@@ -20,7 +20,7 @@ ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /goberus .
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w -X main.Version=$(cat /src/VERSION) -X main.Commit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)" -o /goberus ./cmd/goberus
 
 # Stage 2: small runtime image
 FROM alpine:3.18 AS runtime
@@ -34,13 +34,8 @@ WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /goberus /app/goberus
-# Option A: copy a CA PEM into the image and point the app to it
-# If you want to provide a CA at build time, place `ad_chain.pem` in the build context
-# (CI pipelines typically write the secret to this file before running `docker build`).
-COPY ad_chain.pem /etc/ssl/certs/goberus-ca.pem
-
-# Make the binary and cert owned by the non-root user
-RUN chown goberus:goberus /app/goberus /etc/ssl/certs/goberus-ca.pem
+# Make the binary owned by the non-root user
+RUN chown goberus:goberus /app/goberus
 USER goberus
 
 # Tell the application where to find the CA bundle (optional; app also respects env at runtime)

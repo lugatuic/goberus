@@ -31,8 +31,8 @@ jobs:
         env:
           GOMODCACHE: ${{ github.workspace }}/.cache/pkg/mod
 
-      - name: Run handler tests
-        run: go test ./tests/server
+      - name: Run httpserver tests
+        run: go test ./internal/httpserver/...
 
       - name: Run full test suite
         run: go test ./...

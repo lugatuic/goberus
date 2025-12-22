@@ -5,19 +5,46 @@
 A minimal LDAP-backed service that exposes member lookup and provisioning workflows via `/v1/member`.
 
 ## Status
+- [x] `GET /livez` — liveness endpoint (always returns 200 OK with `{"status":"ok"}`)
+- [x] `GET /readyz` — readiness endpoint (returns 200 if LDAP is reachable, 503 otherwise)
 - [x] `GET /v1/member?username=<value>` — resolves a user by UPN or sAMAccountName and returns normalized attributes via `server.UserClient` backed by `ldaps.Client` in production and fakes in tests.
 - [x] `POST /v1/member` — sanitizes the JSON payload (trim + lowercase for `username`/`OrganizationalUnit`) with `handlers.SanitizeUser` before invoking `ldaps.Client.AddUser`.
 - [ ] `DELETE /v1/member` — TODO: expose member removal once LDAP delete semantics and authorization are finalized.
 - [ ] `PATCH /v1/member` — TODO: introduce attribute updates once LDAP modify flows are defined.
 
 ## Development & testing
-See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./tests/server -run TestHandleGetMember`, `go test ./tests/server -run TestHandleCreateMember`, `go test ./tests/server -run TestSanitizeUserIntegration`, `go test ./...`).
+See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./...`).
 
 ## Next steps
+See [TODO.md](TODO.md) for a complete list of planned features and improvements.
+
+Key upcoming features:
+- Implement `DELETE /v1/member` and `PATCH /v1/member` endpoints
 - Add API authentication and rate limiting
+- Publish as GitHub package (deferred until DELETE and PATCH are complete)
 - Implement connection pooling/reconnect semantics
-- Handle LDAPS password changes via `unicodePwd`
-- Expand unit/integration coverage (e.g., Docker-compose with Samba AD)
+
+## Project layout
+```
+.
+├── cmd/
+│   └── goberus/         # application entrypoint and process lifecycle
+├── config/              # configuration loading and validation
+├── internal/
+│   └── httpserver/      # server composition, route wiring, JSON helpers
+├── ldaps/               # LDAP client, models, helpers
+├── middleware/          # HTTP middleware (RequestID, Recover, Logger)
+├── server/              # HTTP handlers and server-facing types
+├── handlers/            # auxiliary handler helpers used in tests/CLI
+├── tests/
+│   └── integration/     # end-to-end integration tests with Samba AD
+├── docs/                # developer and operational documentation
+├── ADR/                 # Architecture Decision Records
+├── docker-compose.yml   # local test environment (Samba AD + Goberus)
+├── Dockerfile
+├── Makefile
+└── README.md
+```
 
 ## License
 Goberus is open-source software distributed under the terms of the [GNU General Public License v3](LICENSE). See `LICENSE` for the full text and warranty disclaimer.

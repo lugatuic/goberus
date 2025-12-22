@@ -1,0 +1,57 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  integration:
+    name: Integration Tests (Docker Compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TEST_DOMAIN: ${{ vars.TEST_DOMAIN || 'TESTDOMAIN.LOCAL' }}
+      TEST_DOMAIN_PASS: ${{ secrets.TEST_DOMAIN_PASS || 'TestPass123!' }}
+      TEST_BASE_DN: ${{ vars.TEST_BASE_DN || 'DC=testdomain,DC=local' }}
+      TEST_BIND_DN: ${{ vars.TEST_BIND_DN || 'CN=Administrator,CN=Users,DC=testdomain,DC=local' }}
+      TEST_BIND_PASSWORD: ${{ secrets.TEST_BIND_PASSWORD || 'TestPass123!' }}
+      TEST_LDAP_PORT: ${{ vars.TEST_LDAP_PORT || '636' }}
+      TEST_LDAP_USE_TLS: ${{ vars.TEST_LDAP_USE_TLS || 'true' }}
+      TEST_DNS_FORWARDER: ${{ vars.TEST_DNS_FORWARDER || '8.8.8.8' }}
+      INTEGRATION_TESTS: "true"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and start services
+        run: |
+          docker compose -f docker-compose.yml up -d samba goberus
+          # Wait for samba healthcheck
+          for i in {1..60}; do
+            if docker compose ps samba | grep -q "healthy"; then
+              echo "Samba healthy"
+              break
+            fi
+            echo "Attempt $i: Waiting for samba..."
+            sleep 1
+          done
+
+      - name: Check samba status
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml ps
+          docker compose -f docker-compose.yml logs samba --tail=50
+
+      - name: Run integration tests
+        run: |
+          docker compose -f docker-compose.yml run --rm test-runner
+
+      - name: Teardown
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml down -v

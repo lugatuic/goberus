@@ -2,6 +2,7 @@ package ldaps
 
 // MemberInfo is a minimal struct representing attributes returned by GetMemberInfo.
 type MemberInfo struct {
+	Username        string   `json:"username,omitempty"`
 	DN              string   `json:"distinguishedName,omitempty"`
 	CN              string   `json:"cn,omitempty"`
 	DisplayName     string   `json:"displayName,omitempty"`

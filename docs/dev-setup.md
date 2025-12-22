@@ -31,12 +31,21 @@ export LDAP_SKIP_VERIFY="false"                    # set true only for dev testi
 3. Build and run
 ```bash
 go mod tidy
-go build -o goberus ./...
+# Option 1: Run directly
+go run ./cmd/goberus
+
+# Option 2: Build then run
+go build -o goberus ./cmd/goberus
 ./goberus
 ```
 
 4. Query the service
 ```bash
+# Health endpoints
+curl http://localhost:8080/livez       # Liveness check (always returns 200)
+curl http://localhost:8080/readyz      # Readiness check (verifies LDAP connectivity)
+
+# Business endpoints
 curl 'http://localhost:8080/v1/member?username=jdoe' | jq .
 # or with UPN:
 curl 'http://localhost:8080/v1/member?username=jdoe@example.local' | jq .
@@ -45,6 +54,9 @@ curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"username":"testuser","password":"S3cureP@ss"}' \
   http://localhost:8080/v1/member | jq .
+
+# Test request ID correlation (server echoes back X-Request-ID)
+curl -H "X-Request-ID: my-test-id-123" http://localhost:8080/livez -v
 ```
 
 ## Docker — build and run
