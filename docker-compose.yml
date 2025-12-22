@@ -55,7 +55,7 @@ services:
       - samba-data:/samba-shared:ro
 
   test-runner:
-    image: golang:1.21
+    image: golang:1.23
     platform: linux/amd64
     container_name: goberus-test-runner
     depends_on:
