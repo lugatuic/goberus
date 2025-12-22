@@ -1,8 +1,10 @@
 package middleware_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/matryer/is"
@@ -44,5 +46,26 @@ func TestRequestID(t *testing.T) {
 
 		// Response should echo the existing request ID
 		is.Equal(rr.Header().Get("X-Request-ID"), existingID)
+	})
+
+	t.Run("fallback ID when rand fails", func(t *testing.T) {
+		is := is.New(t)
+		orig := middleware.RandRead
+		middleware.RandRead = func([]byte) (int, error) {
+			return 0, errors.New("rand fail")
+		}
+		defer func() { middleware.RandRead = orig }()
+
+		handler := middleware.RequestID(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			id := r.Header.Get("X-Request-ID")
+			is.True(strings.HasPrefix(id, "fallback-id-"))
+			is.True(len(id) > len("fallback-id-"))
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+
+		is.True(strings.HasPrefix(rr.Header().Get("X-Request-ID"), "fallback-id-"))
 	})
 }

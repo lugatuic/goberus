@@ -160,7 +160,7 @@ To run integration tests in CI (GitHub Actions), configure secrets and variables
     docker-compose down -v
 ```
 
-See `.github/workflows/integration-tests.yml` (planned) for the full workflow.
+See `.github/workflows/integration-tests.yml` for the full workflow.
 
 ## Extending Tests
 

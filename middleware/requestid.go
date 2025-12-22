@@ -3,8 +3,13 @@ package middleware
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/http"
+	"time"
 )
+
+// RandRead is used to generate random bytes; it can be overridden in tests.
+var RandRead = rand.Read
 
 // RequestID ensures each request has a stable correlation ID.
 // If the request already has X-Request-ID, it is preserved.
@@ -13,9 +18,9 @@ func RequestID(next http.Handler) http.Handler {
 		id := r.Header.Get("X-Request-ID")
 		if id == "" {
 			var b [16]byte
-			if _, err := rand.Read(b[:]); err != nil {
-				// Fallback to a basic ID if crypto/rand fails (extremely rare)
-				id = "fallback-id"
+			if _, err := RandRead(b[:]); err != nil {
+				// Fallback to a unique ID if crypto/rand fails (extremely rare)
+				id = fmt.Sprintf("fallback-id-%d", time.Now().UnixNano())
 			} else {
 				id = hex.EncodeToString(b[:])
 			}

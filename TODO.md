@@ -36,14 +36,8 @@ This file tracks planned features, improvements, and known issues for the Goberu
 
 ### Low Priority
 
-- [ ] **Handle LDAPS password changes via `unicodePwd`**
-  - Implement password change functionality
-  - Add appropriate security measures
-  - Document password policy requirements
-
 - [ ] **Expand unit/integration coverage**
   - Add more comprehensive test scenarios
-  - Consider Docker-compose setup with Samba AD for integration tests
   - Improve test documentation
 
 ## Completed
@@ -56,3 +50,5 @@ This file tracks planned features, improvements, and known issues for the Goberu
 - [x] LDAP client with LDAPS support
 - [x] Docker multi-stage build
 - [x] CI/CD workflows (tests, linting, CodeQL)
+- [x] Handle LDAPS password changes via `unicodePwd`
+- [x] Integration tests with Docker Compose and Samba AD
