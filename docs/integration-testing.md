@@ -168,7 +168,7 @@ To add new integration test cases:
 
 1. Add test function to `tests/integration/integration_test.go`
 2. Follow the pattern: call `waitForService(t)` at the start
-3. Use `baseURL` constant for HTTP requests
+3. Use `baseURL` function for HTTP requests
 4. Use `is.New(t)` for assertions
 5. Clean up resources if creating test data
 
@@ -178,7 +178,7 @@ func TestNewFeature(t *testing.T) {
     is := is.New(t)
     waitForService(t)
     
-    resp, err := http.Get(baseURL + "/v1/newfeature")
+    resp, err := http.Get(baseURL() + "/v1/newfeature")
     is.NoErr(err)
     defer resp.Body.Close()
     is.Equal(resp.StatusCode, http.StatusOK)
