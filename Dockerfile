@@ -1,6 +1,6 @@
 # Dockerfile - multi-stage build for Goberus
 # Stage 1: build binary
-FROM golang:1.21 AS builder
+FROM golang:1.23 AS builder
 
 # Set working dir
 WORKDIR /src
