@@ -44,8 +44,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-golangci-lint-
 
+      - name: Clean existing Go module cache (avoid stale cache conflicts)
+        run: rm -rf "$HOME/go/pkg/mod"
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.59.0
-          args: --timeout=5m --modules-download-mode=mod
+          args: --timeout=5m --modules-download-mode=mod --out-format=colored-line-number
