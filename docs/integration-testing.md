@@ -154,10 +154,10 @@ To run integration tests in CI (GitHub Actions), configure secrets and variables
     TEST_BIND_DN: ${{ vars.TEST_BIND_DN }}
     TEST_BIND_PASSWORD: ${{ secrets.TEST_BIND_PASSWORD }}
   run: |
-    docker-compose up -d
+    docker compose up -d
     sleep 30  # Wait for Samba initialization
     INTEGRATION_TESTS=true go test ./tests/integration -v
-    docker-compose down -v
+    docker compose down -v
 ```
 
 See `.github/workflows/integration-tests.yml` for the full workflow.
