@@ -17,7 +17,7 @@ Integration tests validate the full end-to-end flow of Goberus interacting with 
 
 **Local Development:** The `docker-compose.yml` file uses environment variables with safe defaults for local testing:
 ```bash
-TEST_DOMAIN=TESTDOMAIN
+TEST_DOMAIN=TESTDOMAIN.LOCAL
 TEST_DOMAIN_PASS=TestPass123!
 TEST_BASE_DN=DC=testdomain,DC=local
 TEST_BIND_DN=CN=Administrator,CN=Users,DC=testdomain,DC=local
@@ -86,7 +86,7 @@ The integration test suite (`tests/integration/integration_test.go`) validates:
 ## Test Environment Details
 
 ### Samba AD Configuration
-- **Domain:** Configured via `TEST_DOMAIN` env var (default: `TESTDOMAIN`)
+- **Domain:** Configured via `TEST_DOMAIN` env var (default: `TESTDOMAIN.LOCAL`)
 - **Base DN:** Configured via `TEST_BASE_DN` (default: `DC=testdomain,DC=local`)
 - **Admin User:** Configured via `TEST_BIND_DN` (default: `CN=Administrator,CN=Users,DC=testdomain,DC=local`)
 - **Admin Password:** Configured via `TEST_DOMAIN_PASS` and `TEST_BIND_PASSWORD` (default: `TestPass123!` for local dev only)
@@ -145,7 +145,7 @@ To run integration tests in CI (GitHub Actions), configure secrets and variables
 - `TEST_BIND_PASSWORD` — LDAP bind password (typically same as domain pass)
 
 **GitHub Variables (Settings → Secrets and variables → Actions → Variables):**
-- `TEST_DOMAIN` — Domain name (e.g., `TESTDOMAIN`)
+- `TEST_DOMAIN` — Domain name (e.g., `TESTDOMAIN.LOCAL`)
 - `TEST_BASE_DN` — Base DN (e.g., `DC=testdomain,DC=local`)
 - `TEST_BIND_DN` — Bind DN (e.g., `CN=Administrator,CN=Users,DC=testdomain,DC=local`)
 
