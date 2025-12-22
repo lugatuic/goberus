@@ -2,6 +2,7 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/matryer/is"
 
 	"github.com/lugatuic/goberus/ldaps"
@@ -39,24 +41,53 @@ func closeBody(t *testing.T, closer io.Closer) {
 	}
 }
 
+type testLogger struct{ t *testing.T }
+
+func (l testLogger) Printf(format string, args ...any) {
+	l.t.Helper()
+	l.t.Logf(format, args...)
+}
+
 // waitForService polls the service until it's ready or times out
 func waitForService(t *testing.T) {
 	t.Helper()
 	is := is.New(t)
 
-	for i := 0; i < maxRetries; i++ {
-		resp, err := http.Get(baseURL() + "/readyz")
-		if err == nil && resp.StatusCode == http.StatusOK {
-			closeBody(t, resp.Body)
-			t.Logf("Service ready after %d attempts", i+1)
-			return
+	client := retryablehttp.NewClient()
+	client.RetryMax = maxRetries
+	client.RetryWaitMin = retryInterval
+	client.RetryWaitMax = retryInterval
+	client.Logger = testLogger{t: t}
+	client.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
+		if err != nil {
+			return true, nil
 		}
-		if resp != nil {
-			closeBody(t, resp.Body)
+		if resp == nil {
+			return true, nil
 		}
-		time.Sleep(retryInterval)
+		if resp.StatusCode == http.StatusOK {
+			return false, nil
+		}
+		// Drain/close before retry to avoid leaks
+		closeBody(t, resp.Body)
+		return true, nil
 	}
-	is.Fail() // Service did not become ready
+
+	req, err := retryablehttp.NewRequest(http.MethodGet, baseURL()+"/readyz", nil)
+	is.NoErr(err)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Service did not become ready after %d attempts: %v", client.RetryMax+1, err)
+	}
+	if resp != nil {
+		defer closeBody(t, resp.Body)
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("Service not ready after %d attempts: status=%d body=%s", client.RetryMax+1, resp.StatusCode, string(body))
+	}
+	t.Logf("Service ready (status=%d)", resp.StatusCode)
 }
 
 func TestMain(m *testing.M) {
