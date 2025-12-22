@@ -43,7 +43,7 @@ func New(cfg *config.Config, logger *zap.Logger, client UserClient) *Server {
 func (s *Server) Handler() http.Handler {
 	// Health endpoints
 	s.mux.HandleFunc("/livez", func(w http.ResponseWriter, r *http.Request) {
-		respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+		respondJSON(s.logger, w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	s.mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +51,10 @@ func (s *Server) Handler() http.Handler {
 		defer cancel()
 		if err := s.client.Ping(ctx); err != nil {
 			s.logger.Warn("readyz.ping_failed", zap.Error(err))
-			respondJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "degraded"})
+			respondJSON(s.logger, w, http.StatusServiceUnavailable, map[string]string{"status": "degraded"})
 			return
 		}
-		respondJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+		respondJSON(s.logger, w, http.StatusOK, map[string]string{"status": "ready"})
 	})
 
 	// Business routes
@@ -65,7 +65,7 @@ func (s *Server) Handler() http.Handler {
 		case http.MethodPost:
 			return server.HandleCreateMember(s.client, w, r)
 		default:
-			respondJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+			respondJSON(s.logger, w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
 			return nil
 		}
 	})
@@ -94,18 +94,19 @@ func (s *Server) makeAppHandler(fn appHandler) http.Handler {
 			// Log internal error with context
 			s.logger.Error("handler.error", zap.Error(err), zap.String("path", r.URL.Path), zap.String("method", r.Method))
 			// Return a generic 500 with JSON (do not leak internal details).
-			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+			respondJSON(s.logger, w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
 		}
 	})
 }
 
 // respondJSON writes a JSON response with proper headers.
-func respondJSON(w http.ResponseWriter, status int, v any) {
+func respondJSON(logger *zap.Logger, w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		// Log encoding failure but response headers already sent
-		// Best we can do is note it happened
+		if logger != nil {
+			logger.Error("respond_json.encode_error", zap.Error(err))
+		}
 		_, _ = w.Write([]byte("\n"))
 	}
 }
