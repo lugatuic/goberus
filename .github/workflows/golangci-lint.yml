@@ -32,6 +32,11 @@ jobs:
       - name: Download modules
         run: go mod download
 
+        - name: Clean existing Go module cache (avoid stale cache conflicts)
+          run: |
+            sudo chmod -R u+rwX "$HOME/go/pkg/mod" || true
+            rm -rf "$HOME/go/pkg/mod"
+
       - name: Cache golangci-lint binary and modules
         uses: actions/cache@v4
         with:
