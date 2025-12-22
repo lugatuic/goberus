@@ -4,6 +4,7 @@ services:
     platform: linux/amd64
     container_name: goberus-samba
     privileged: true
+    entrypoint: ["/bin/sh", "-c", "set -e; mkdir -p /var/lib/samba/private/tls; cd /var/lib/samba/private/tls; rm -f cert.pem key.pem ca.pem; openssl req -x509 -newkey rsa:2048 -days 3650 -nodes -keyout key.pem -out cert.pem -subj '/CN=samba' -addext 'subjectAltName=DNS:samba,DNS:localhost' -set_serial 1; cp cert.pem ca.pem; exec /init.sh"]
     dns:
       - 127.0.0.1
       - 127.0.0.11

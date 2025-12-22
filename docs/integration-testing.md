@@ -46,6 +46,8 @@ docker compose run --rm test-runner
 docker compose down -v  # clean state
 ```
 
+### Samba certificate regeneration (automated)
+The compose entrypoint now regenerates the Samba TLS cert on startup with a positive serial and SANs for `samba`/`localhost`, preventing `x509: negative serial number` errors.
 What this does:
 - Starts Samba AD (LDAPS on host ports 389/636, self-signed cert).
 - Starts Goberus on host port 8080; it talks to Samba with `LDAP_SKIP_VERIFY=true`.
