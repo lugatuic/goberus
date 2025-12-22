@@ -4,10 +4,13 @@ services:
     platform: linux/amd64
     container_name: goberus-samba
     privileged: true
+    dns:
+      - 127.0.0.1
+      - 127.0.0.11
     environment:
       DOMAIN: ${TEST_DOMAIN:-TESTDOMAIN.LOCAL}
       DOMAINPASS: ${TEST_DOMAIN_PASS:-TestPass123!}
-      DNSFORWARDER: ${TEST_DNS_FORWARDER:-8.8.8.8}
+      DNSFORWARDER: ${TEST_DNS_FORWARDER:-127.0.0.11}
     volumes:
       - samba-data:/var/lib/samba
       - samba-config:/etc/samba/external

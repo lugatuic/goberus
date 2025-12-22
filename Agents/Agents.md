@@ -7,7 +7,8 @@
    - `docker compose down -v || true`
    - `docker system prune -f` (only if you need to reclaim space)
 
-2. **Rebuild and start services**
+2. **Rebuild app image and start services**
+   - `docker compose build goberus`
    - `docker compose up -d --build samba goberus`
 
 3. **Wait for health**
@@ -26,6 +27,9 @@
 6. **Commit only after green tests**
    - `git status` should reflect intended changes only.
    - Stage/commit after step 4 passes.
+
+7. **Cleanup when done**
+   - `docker compose down -v` to tear down services and volumes.
 
 ## Notes
 - Compose defaults: Samba uses ports 389/636, goberus on 8080. Avoid host port conflicts.

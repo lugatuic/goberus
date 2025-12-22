@@ -113,6 +113,10 @@ BIND_ADDR=:8080
 - Check `docker compose logs samba` for initialization errors
 - Verify the Samba healthcheck passed: `docker compose ps`
 
+### Samba logs show DNS update timeouts
+- Use Docker's embedded DNS instead of a public resolver: `export TEST_DNS_FORWARDER=127.0.0.11`
+- Recreate the stack: `docker compose down -v && docker compose up -d samba goberus`
+
 ### `/readyz` returns 503
 - Ensure Samba is healthy.
 - From host: `openssl s_client -connect localhost:636 -servername samba -brief` (expect self-signed warning but handshake should complete).
