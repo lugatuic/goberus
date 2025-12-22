@@ -37,7 +37,7 @@ func baseURL() string {
 func closeBody(t *testing.T, closer io.Closer) {
 	t.Helper()
 	if err := closer.Close(); err != nil {
-		t.Logf("close response body: %v", err)
+		t.Errorf("close response body: %v", err)
 	}
 }
 
