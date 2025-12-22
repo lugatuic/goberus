@@ -19,7 +19,7 @@ jobs:
       TEST_BIND_PASSWORD: ${{ secrets.TEST_BIND_PASSWORD || 'TestPass123!' }}
       TEST_LDAP_PORT: ${{ vars.TEST_LDAP_PORT || '636' }}
       TEST_LDAP_USE_TLS: ${{ vars.TEST_LDAP_USE_TLS || 'true' }}
-      TEST_DNS_FORWARDER: ${{ vars.TEST_DNS_FORWARDER || '127.0.0.11' }}
+      TEST_DNS_FORWARDER: ${{ vars.TEST_DNS_FORWARDER || '8.8.8.8' }}
       INTEGRATION_TESTS: "true"
     steps:
       - name: Check out code
