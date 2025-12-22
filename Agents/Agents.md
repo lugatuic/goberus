@@ -16,19 +16,22 @@
      - `docker compose ps`
      - Samba should show healthy on 389/636; goberus healthy on 8080.
 
-4. **Run integration tests (MANDATORY BEFORE ANY COMMIT)**
+4. **Run golangci-lint (MANDATORY)**
+   - `golangci-lint run ./...` (ensure it’s installed, e.g., `brew install golangci-lint`).
+
+5. **Run integration tests (MANDATORY BEFORE ANY COMMIT)**
    - `docker compose run --rm test-runner`
    - All tests must pass before staging/committing.
 
-5. **If tests fail**
+6. **If tests fail**
    - Inspect logs: `docker compose logs samba --tail=200` and `docker compose logs goberus --tail=200`
    - Fix issues, rebuild (`docker compose up -d --build samba goberus`), and rerun tests.
 
-6. **Commit only after green tests**
+7. **Commit only after green tests**
    - `git status` should reflect intended changes only.
    - Stage/commit after step 4 passes.
 
-7. **Cleanup when done**
+8. **Cleanup when done**
    - `docker compose down -v` to tear down services and volumes.
 
 ## Notes

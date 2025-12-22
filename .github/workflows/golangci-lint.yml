@@ -22,10 +22,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          # Project Go version; change if you prefer a different version
-          go-version: '1.21'
+          go-version: '1.23'
+          check-latest: true
+
+      - name: Download modules
+        run: go mod download
 
       - name: Cache golangci-lint binary and modules
         uses: actions/cache@v4
@@ -42,7 +45,5 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          # Choose a golangci-lint version; change if you need a specific one
           version: v1.59.0
-          # Additional args: adjust timeout and directories as needed
-          args: --timeout=5m
+          args: --timeout=5m --modules-download-mode=mod
