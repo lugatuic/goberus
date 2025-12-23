@@ -39,9 +39,19 @@ goberus/
 │   ├── Plan - DELETE Method Support.md
 │   ├── Plan - Project Structure Refactoring.md
 │   └── Plan - IntegrationTestsAndCICD.md
-├── .github/
-│   ├── workflows/
-│   └── (no more /prompts here)
+├── http/                        # HTTP handlers & validation (NEW: consolidated from server/, handlers/)
+│   ├── handlers.go              # HTTP handler functions (GET, POST, PATCH, DELETE /v1/member)
+│   ├── handlers_test.go         # Handler unit tests
+│   ├── validate.go              # Input validation helpers
+│   └── validate_test.go         # NEW: Validation unit tests
+├── middleware/                  # HTTP middleware (modular, pluggable)
+│   ├── middleware.go            # Chain/composition utility
+│   ├── recover.go               # Panic recovery middleware
+│   ├── recover_test.go          # NEW: Recover tests
+│   ├── requestid.go             # Request ID injection
+│   ├── requestid_test.go        # NEW: RequestID tests
+│   ├── logger.go                # REFACTOR: Logger as pluggable module (prep for OTel/Grafana)
+│   └── logger_test.go           # NEW: Logger tests
 ├── ldaps/                       # LDAP operations (refactored by protocol)
 │   ├── connection.go            # Bind operations
 │   ├── search.go                # Search operations
@@ -51,6 +61,9 @@ goberus/
 │   ├── models.go
 │   ├── dn.go
 │   └── *_test.go
+├── .github/
+│   ├── workflows/
+│   └── (no more /prompts here)
 ├── README.md
 ├── CHANGELOG.md
 └── ... (rest of project)
@@ -68,13 +81,38 @@ goberus/
 - [ ] Update `README.md` to reference new docs structure
 - [ ] Update `.gitignore` if needed
 
+### Phase 1b: HTTP Handler Reorganization (same PR as Phase 1 docs, but separate commit)
+- [ ] Create `http/` package to hold handlers and validation:
+  - `http/handlers.go` — HTTP handler functions (GET, POST, PATCH, DELETE /v1/member)
+  - `http/handlers_test.go` — Handler unit tests
+  - `http/validate.go` — Input validation helpers
+  - `http/validate_test.go` — **NEW**: Validation tests
+- [ ] Refactor `middleware/` into modular, pluggable middleware:
+  - `middleware/middleware.go` — Chain/composition utility (keep as middleware glue)
+  - `middleware/recover.go` — Panic recovery middleware
+  - `middleware/recover_test.go` — **NEW**: Recover tests
+  - `middleware/requestid.go` — Request ID injection (keep existing, add tests)
+  - `middleware/requestid_test.go` — **NEW**: RequestID tests
+  - `middleware/logger.go` — **REFACTOR**: Extract Logger into own module (preparing for future OTel/Grafana integration)
+  - `middleware/logger_test.go` — **NEW**: Logger tests (enables testing OTel hooks)
+- [ ] Delete now-empty `server/` and `handlers/` directories
+- [ ] Update imports in `internal/httpserver/` and `cmd/goberus/main.go`
+- [ ] Verify `go test ./...` passes with full coverage
+
+**Rationale**: 
+- Handlers (http/) and validation (http/) are colocated but separate from infrastructure concerns
+- Middleware stays in middleware/ package, but each middleware is independently pluggable
+- Logger isolation enables future extensions (OTel exporter, Grafana integration, custom hooks)
+- Individual middleware_test.go files enable comprehensive testing and easier mocking
+- Middleware composition in middleware.go remains lightweight coordination layer
+
 ### Phase 2: LDAP Refactoring (separate PR)
 - [ ] Create `ldaps/connection.go` — Bind/connection operations
 - [ ] Create `ldaps/search.go` — Move GetMemberInfo, Ping (verify)
 - [ ] Rename `ldaps/add_user.go` → `ldaps/add.go`
 - [ ] Create `ldaps/modify.go` — Move setUnicodePwd, enableAccount; add ModifyUserAttributes
 - [ ] Create `ldaps/delete.go` — Placeholder for DeleteUser
-- [ ] Update imports across server/ and internal/ packages
+- [ ] Update imports across http/ and internal/ packages
 - [ ] Run tests to verify no breakage
 
 ### Phase 3: PATCH Support (separate PR)
