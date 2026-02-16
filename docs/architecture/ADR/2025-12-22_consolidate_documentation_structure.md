@@ -32,58 +32,39 @@ docs/
 │       ├── 2025-12-18_middleware_design_pattern.md
 │       └── 2025-12-22_consolidate_documentation_structure.md
 ├── development/           # Developer guides & workflows
+│   ├── agents.md          (from Agents/Agents.md — single source of truth for agent behavior + workflow)
 │   ├── dev-setup.md
-│   ├── integration-testing.md
-│   ├── agents.md          (from Agents/Agents.md)
-│   └── running-tests.md   (future)
-├── operations/            # Deployment, LDAPS, infrastructure
-│   ├── ldaps-setup.md     (future: from Dockerfile comments)
-│   └── docker-compose-guide.md
-└── api/                   # REST API reference
-    ├── overview.md
-    ├── GET-member.md
-    ├── POST-member.md
-    ├── PATCH-member.md    (future)
-    └── DELETE-member.md   (future)
-
-prompts/                   # Agent runbooks (remains at root for visibility)
-├── Plan - LDAP Refactoring.md
-├── Plan - PATCH Method Support.md
-├── Plan - DELETE Method Support.md
-├── Plan - Project Structure Refactoring.md
-└── ...
+│   └── integration-testing.md
+└── prompts/               # Agent runbooks & implementation plans (from .github/prompts/)
+    └── Plan - IntegrationTestsAndCICD.prompt.md
 
 (root)
 ├── README.md              # Project overview (standard)
 ├── CHANGELOG.md           # Release history (standard)
 ├── TODO.md                # Feature roadmap (standard, high visibility)
-├── ADR/                   # DEPRECATED (migrate to docs/architecture/ADR/)
-└── Agents/                # DEPRECATED (migrate to docs/development/agents.md)
+└── version.txt            # Semver version (read by Makefile/Dockerfile)
 ```
 
-Keep `README.md`, `CHANGELOG.md`, and `TODO.md` at root per GitHub conventions.
+Keep `README.md`, `CHANGELOG.md`, `TODO.md`, and `version.txt` at root per GitHub conventions.
+Additional `docs/` subdirectories (e.g., `api/`, `operations/`) should only be created when there is actual content to put in them.
 
 ## Consequences
 
 ### Positive
 - **Better discoverability**: All documentation in `docs/` with clear subfolders
-- **Scalability**: New features (PATCH, DELETE, group management) have designated homes
-- **Agent-friendly**: Organized structure makes it easier for agents to parse and reference docs
-- **Single source of truth**: Architecture decisions, dev guides, and API reference coexist
-- **Growth-ready**: `docs/api/` and `docs/operations/` prepared for expansion
+- **Scalability**: New subdirectories can be added when content exists to fill them
+- **Agent-friendly**: `agents.md` is the single source of truth for agent behavior and workflow
+- **No empty placeholders**: Directories only exist when they contain real content
 
 ### Negative
-- **Migration effort**: Move files, update cross-references, update CI/CD references (if any)
-- **Temporary disruption**: Links in code comments and workflows may break during transition
+- **Migration effort**: Moved files, updated cross-references and CI/CD references
 - **ADR discoverability**: ADRs now nested in `docs/architecture/ADR/` instead of root-level `ADR/`
 
 ### Mitigation
-- Update `README.md` with link to `docs/`
-- Create redirects/aliases if necessary
-- Validate all links during migration (find . -name "*.md" | xargs grep -l "ADR/\|Agents/\|docs/")
-- Test that GitHub Actions and CI workflows can still find docs
+- Updated `README.md` with link to `docs/`
+- Validated all links after migration
 
 ## Related ADRs / Links
 - [ADR Examples — GitHub](https://github.com/joelparkerhenderson/architecture-decision-record)
 - [agents.md](../../development/agents.md) — Agent workflow documentation
-- [Plan - Project Structure Refactoring](../../../prompts/Plan%20-%20Project%20Structure%20Refactoring.md) — Implementation runbook
+- [Plan - IntegrationTestsAndCICD](../../prompts/Plan%20-%20IntegrationTestsAndCICD.prompt.md) — CI/CD implementation plan
