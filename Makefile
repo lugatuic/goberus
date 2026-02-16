@@ -20,19 +20,19 @@ ci: fmt lint test
 
 # Print current version
 version:
-	@cat VERSION
+	@cat version.txt
 
 # Bump version (usage: make bump-version VERSION=0.0.2)
 bump-version:
 	@if [ -z "$(VERSION)" ]; then echo "Usage: make bump-version VERSION=0.0.X"; exit 1; fi
-	@echo "$(VERSION)" > VERSION
+	@echo "$(VERSION)" > version.txt
 	@echo "Version bumped to $(VERSION)"
 
 # Release target: creates a tag and pushes to remote (requires VERSION to be set)
 release: bump-version
-	@VERSION=$$(cat VERSION) && \
+	@VERSION=$$(cat version.txt) && \
 		echo "Releasing v$$VERSION..." && \
-		git add VERSION CHANGELOG.md && \
+		git add version.txt CHANGELOG.md && \
 		git commit -m "release: v$$VERSION" && \
 		git tag -a "v$$VERSION" -m "Release v$$VERSION" && \
 		echo "Tag v$$VERSION created. Run 'git push origin v$$VERSION' to publish."

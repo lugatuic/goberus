@@ -54,5 +54,4 @@
 ## Notes
 - Compose defaults: Samba uses ports 389/636, goberus on 8080. Avoid host port conflicts.
 - Go toolchain: Docker builder uses Go 1.23 to match `go.mod`.
-- Prefer minimal changes; don’t modify DNS forwarder or healthchecks unless necessary.
-- Refer to the integration test workflow if necessary: [Integration Testing](integration-testing.md)
+- Prefer minimal changes; don’t modify DNS forwarder or healthchecks unless necessary.- When releasing, bump `version.txt` and update `CHANGELOG.md`. Use `make bump-version VERSION=x.y.z` or edit directly.- Refer to the integration test workflow if necessary: [Integration Testing](integration-testing.md)
