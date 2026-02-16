@@ -13,7 +13,7 @@ A minimal LDAP-backed service that exposes member lookup and provisioning workfl
 - [ ] `PATCH /v1/member` — TODO: introduce attribute updates once LDAP modify flows are defined.
 
 ## Development & testing
-See [docs/dev-setup.md](docs/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./...`).
+See [docs/development/dev-setup.md](docs/development/dev-setup.md) for the quick-start instructions, environment variables, Docker guidance, troubleshooting tips, and the testing commands (`go test ./...`).
 
 ## Next steps
 See [TODO.md](TODO.md) for a complete list of planned features and improvements.
@@ -38,8 +38,11 @@ Key upcoming features:
 ├── handlers/            # auxiliary handler helpers used in tests/CLI
 ├── tests/
 │   └── integration/     # end-to-end integration tests with Samba AD
-├── docs/                # developer and operational documentation
-├── ADR/                 # Architecture Decision Records
+├── docs/                # documentation (architecture, development, prompts)
+│   ├── architecture/
+│   │   └── ADR/          # Architecture Decision Records
+│   ├── development/     # developer guides & workflows
+│   └── prompts/         # agent runbooks & implementation plans
 ├── docker-compose.yml   # local test environment (Samba AD + Goberus)
 ├── Dockerfile
 ├── Makefile

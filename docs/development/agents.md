@@ -2,6 +2,23 @@
 
 **Purpose**: Keep our agents consistent when working on this repo. Always verify changes with Dockerized integration tests before committing.
 
+## Ground rules
+- Scan existing docs and directories before making changes.
+- Do not create stub docs or empty directories.
+- Do not duplicate content across locations; move files and update links.
+- Make the smallest change that satisfies the request.
+- Keep documentation organized under `docs/development/` and `docs/architecture/ADR/`.
+- Avoid adding new top-level directories without explicit approval.
+- Use the changelog for historical record; don't add extra "notes" files for work summaries.
+- Verify links after moves.
+
+## Existing documentation (scan first)
+- Development setup and environment variables: [dev-setup.md](dev-setup.md)
+- Integration testing workflow and CI notes: [integration-testing.md](integration-testing.md)
+- ADR template and decision format: [ADR/0000_template.md](../architecture/ADR/0000_template.md)
+- Middleware structure decision (Mat Ryer pattern): [ADR/2025-12-18_middleware_design_pattern.md](../architecture/ADR/2025-12-18_middleware_design_pattern.md)
+- Documentation consolidation decision: [ADR/2025-12-22_consolidate_documentation_structure.md](../architecture/ADR/2025-12-22_consolidate_documentation_structure.md)
+
 ## Standard Workflow
 1. **Clean slate (optional but recommended)**
    - `docker compose down -v || true`
@@ -37,5 +54,4 @@
 ## Notes
 - Compose defaults: Samba uses ports 389/636, goberus on 8080. Avoid host port conflicts.
 - Go toolchain: Docker builder uses Go 1.23 to match `go.mod`.
-- Prefer minimal changes; don’t modify DNS forwarder or healthchecks unless necessary.
-- Refer to the integration test workflow if necessary: [Integration Testing](../docs/integration-testing.md)
+- Prefer minimal changes; don’t modify DNS forwarder or healthchecks unless necessary.- When releasing, bump `version.txt` and update `CHANGELOG.md`. Use `make bump-version VERSION=x.y.z` or edit directly.- Refer to the integration test workflow if necessary: [Integration Testing](integration-testing.md)

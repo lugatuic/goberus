@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] 2026-02-15
+
+### Changed
+- Consolidated documentation under `docs/` with `development/`, `architecture/ADR/`, and `prompts/` subdirectories
+- Merged agent behavioral guardrails into `docs/development/agents.md` (single source of truth)
+- Moved ADRs from root `ADR/` to `docs/architecture/ADR/`
+- Moved agent workflow from `Agents/` to `docs/development/agents.md`
+- Moved prompts from `.github/prompts/` to `docs/prompts/`
+
+### Removed
+- Legacy root-level `ADR/` and `Agents/` directories
+- Redundant doc stubs at old locations
+
 ## [0.0.3] 2025-12-22
 
 ### Added

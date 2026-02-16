@@ -66,7 +66,7 @@
 ### Phase 2: Integration tests
 - Create `docker-compose.yml` (Samba AD fixture)
 - Add `tests/integration/` test suite
-- Document test setup in `docs/integration-testing.md`
+- Document test setup in `docs/development/integration-testing.md`
 - Add integration test step to CI workflow (or separate workflow)
 
 ### Phase 3: CI/CD pipeline
@@ -76,9 +76,9 @@
 - Test release process on feature branch
 
 ### Phase 4: Documentation & refinement
-- Update `docs/dev-setup.md` with release process
+- Update `docs/development/dev-setup.md` with release process
 - Add version endpoint to health checks (if desired)
-- Document versioning strategy in new `ADR/2025-12-18_versioning_and_release.md`
+- Document versioning strategy in new `docs/architecture/ADR/2025-12-18_versioning_and_release.md`
 
 ## Key Files to Create/Modify
 
@@ -91,8 +91,8 @@
 | `Dockerfile` | Modify | Inject version via `ldflags` |
 | `Makefile` | Modify | Add version/release targets |
 | `.github/workflows/build-publish.yml` | Create | Multi-platform build and publish |
-| `docs/integration-testing.md` | Create | Integration test documentation |
-| `docs/release-process.md` | Create | Release workflow documentation |
+| `docs/development/integration-testing.md` | Create | Integration test documentation |
+| `docs/operations/release-process.md` | Create | Release workflow documentation |
 
 ## Success Criteria
 

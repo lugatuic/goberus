@@ -20,7 +20,7 @@ ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w -X main.Version=$(cat /src/VERSION) -X main.Commit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)" -o /goberus ./cmd/goberus
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w -X main.Version=$(cat /src/version.txt) -X main.Commit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)" -o /goberus ./cmd/goberus
 
 # Stage 2: small runtime image
 FROM alpine:3.18 AS runtime
