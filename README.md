@@ -38,12 +38,11 @@ Key upcoming features:
 ├── handlers/            # auxiliary handler helpers used in tests/CLI
 ├── tests/
 │   └── integration/     # end-to-end integration tests with Samba AD
-├── docs/                # documentation (architecture, development, operations, api)
+├── docs/                # documentation (architecture, development, prompts)
 │   ├── architecture/
 │   │   └── ADR/          # Architecture Decision Records
 │   ├── development/     # developer guides & workflows
-│   ├── operations/      # deployment, LDAPS, infrastructure
-│   └── api/             # REST API reference
+│   └── prompts/         # agent runbooks & implementation plans
 ├── docker-compose.yml   # local test environment (Samba AD + Goberus)
 ├── Dockerfile
 ├── Makefile
